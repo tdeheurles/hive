@@ -1,0 +1,13 @@
+#!/bin/bash
+
+. ./build/config.sh
+
+dockerBinary="/usr/bin/docker"
+if [[ $DOCKER_MACHINE_NAME == "default" ]];then
+  dockerBinary="//usr/local/bin/docker"
+fi
+
+docker run -ti                                  \
+  -v //var/run/docker.sock:/var/run/docker.sock \
+  -v $dockerBinary:/usr/bin/docker              \
+  $hiveContainer $@

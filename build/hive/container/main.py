@@ -1,9 +1,8 @@
 import argparse
 import subprocess
-
-def getDockerVolumes(): 
-  volumes = subprocess.check_output(["docker", "volume", "ls"]).split('\n')
-  return volumes
+from Gcloud import gcloud
+from modele.Volume import Volume
+from modele.Docker import getDockerVolume
 
 commands = {
     "dps":    { "type":"call", "cmd": ["docker", "ps"] },
@@ -27,10 +26,5 @@ if args.command in commands:
     subprocess.call(command['cmd'])
 
   if command['type'] == "code":
-    if args.command == "gcloud":
-      # get volumes
-      volumes = getDockerVolumes()
-      # if no volume with name gcloud_cache
-      #   create volume gcloud
-      #   gcloud init
-      print volumes
+    gcloud()
+

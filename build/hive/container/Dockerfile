@@ -4,7 +4,7 @@ MAINTAINER thibault deheurles <tdeheurles@gmail.com>
 COPY       install.sh /tmp/install.sh
 RUN        cd /tmp && ./install.sh
 
-COPY       main.py /opt/main.py
+COPY       app /opt
 WORKDIR    /opt
 ENTRYPOINT ["python", "main.py"]
 CMD        ["-h"]

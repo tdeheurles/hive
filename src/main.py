@@ -1,16 +1,19 @@
 import argparse
 import subprocess
 
-def getDockerVolumes(): 
-  volumes_string = subprocess.check_output(["docker", "volume", "ls"]).split('\n')
-  map()
-  return volumes
+from modele.Gcloud import Gcloud
+from modele.Volume import Volume
+from modele.Kubernetes import Kubernetes
+from modele.Docker import getDockerVolumes
 
 commands = {
-    "dps":    { "type":"call", "cmd": ["docker", "ps"] },
-    "dim":    { "type":"call", "cmd": ["docker", "images"] },
-    "dvl":    { "type":"call", "cmd": ["docker", "volume", "ls"] },
-    "gcloud": { "type":"code"}
+    "bash":       { "type":"call", "cmd": ["docker", "run", "-ti", "tdeheurles/hive:0.0", "bash"]},
+    "dps":        { "type":"call", "cmd": ["docker", "ps"] },
+    "dim":        { "type":"call", "cmd": ["docker", "images"] },
+    "dvl":        { "type":"call", "cmd": ["docker", "volume", "ls"] },
+    "gcloudInit":           { "type":"code" },
+    "gcloudGetCredentials": { "type":"code" },
+    "kubectl":              { "type":"code" }
 }
 
 parser = argparse.ArgumentParser()
@@ -23,15 +26,17 @@ args = parser.parse_args()
 
 if args.command in commands:
   command = commands[args.command]
-  
+
   if command['type'] == "call":
     subprocess.call(command['cmd'])
 
   if command['type'] == "code":
-    if args.command == "gcloud":
-      # get volumes
-      volumes = getDockerVolumes()
-      # if no volume with name gcloud_cache
-      #   create volume gcloud
-      #   gcloud init
-      print volumes
+    if args.command == "gcloudInit":
+      gcloud = Gcloud(subprocess)
+      gcloud.init()
+    if args.command == "gcloudGetCredentials":
+      gcloud = Gcloud(subprocess)
+      gcloud.getCredentials("cluster")
+    if args.command == "kubectl":
+      kubernetes = Kubernetes(subprocess)
+      kubernetes.kubectl()

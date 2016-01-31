@@ -12,9 +12,9 @@ container="container"
 . ../config.sh
 
 mkdir -p $container
-cp Dockerfile        $container/Dockerfile
-cp install.sh        $container/install.sh
-cp ../../src/main.py $container/main.py
+cp Dockerfile $container/Dockerfile
+cp install.sh $container/install.sh
+cp ../../src  $container/app
 
 sed -i "s|__OS__|$os|g"                 $container/Dockerfile
 sed -i "s|__MAINTAINER__|$maintainer|g" $container/Dockerfile

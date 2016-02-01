@@ -17,6 +17,15 @@ docker:
       command:
         - "docker"
         - "images"
+    rm:
+      help: remove a docker container
+      type: call
+      command:
+        - "docker"
+        - "rm"
+      parameters:
+        - name: "container_id"
+          help: "the container id you want to remove (3 or 4 first letters is sufficient). Get it with <docker ps -a>"
     volume:
       help: show the existing volumes
       type: call
@@ -30,6 +39,10 @@ gcloud:
     cli:
       help: run the gcloud CLI
       type: code
+      parameters:
+        - name: "parameters"
+          help: "the command to run with gcloud CLI"
+          nargs: "*"
     init:
       help: setup the user account and project
       type: code
@@ -60,9 +73,13 @@ kubernetes:
     deploy:
       help: deploy an application
       type: code
-    kubectl:
+    cli:
       help: run kubectl commands
       type: code
+      parameters:
+        - name: "parameters"
+          help: "the command to run with kubectl (the kubernetes CLI)"
+          nargs: "*"
     scale:
       help: scale a service in a given namespace
       type: code

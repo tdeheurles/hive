@@ -1,54 +1,14 @@
 import subprocess
 import yaml
 import importlib
-from modele.Parser import Parser
+from modele.Menu import Menu
 
 stream = open("commands/commands.yml", 'r')
 commands = yaml.load(stream)
 
-mainName = "main"
-serviceName = "service"
+menu = Menu()
 
-parsers = {
-    mainName: Parser(prog='hive')
-}
-
-subparsers = {
-    serviceName: parsers[mainName].add_subparsers(title=serviceName, dest="service")
-}
-
-for commandName in commands:
-    command = commands[commandName]
-    parsers[commandName] = subparsers[serviceName].add_parser(commandName, help=command["help"])
-    subparsers[commandName] = parsers[commandName].add_subparsers(
-        title="commands",
-        dest="command"
-    )
-
-    for subCommandName in command["commands"]:
-        subCommand = command["commands"][subCommandName]
-        parsers[subCommandName] = subparsers[commandName].add_parser(
-            subCommandName,
-            help=subCommand["help"]
-        )
-
-        if "parameters" in subCommand:
-            for parameters in subCommand["parameters"]:
-                name = parameters["name"]
-                doc = parameters["help"]
-                if "action" in parameters:
-                    parsers[subCommandName].add_argument(
-                        name,
-                        help=doc,
-                        action=parameters["action"],
-                        const=name
-                    )
-
-                else:
-                    parsers[subCommandName].add_argument(name, help=doc)
-
-args = parsers[mainName].parse_args()
-
+args = menu.parse(commands)
 commandName = args.command
 commandContent = commands[args.service]["commands"][args.command]
 commandType = commandContent['type']

@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 os="ubuntu:15.10"
 maintainer="thibault deheurles <tdeheurles@gmail.com>"
 

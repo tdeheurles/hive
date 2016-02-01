@@ -9,5 +9,5 @@ build=$1
 
 . ../config.sh
 
-docker push $hiveContainer
-docker push $hiveContainer.$build
+docker push ${hiveContainer}
+docker push ${hiveContainer}.${build}

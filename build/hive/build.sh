@@ -7,17 +7,21 @@ if [[ $# != 1 ]];then
 fi
 build=$1
 
+# fail fast
+set -euo pipefail
+
 container="container"
 
 . ../config.sh
 
-mkdir -p $container
-cp Dockerfile $container/Dockerfile
-cp install.sh $container/install.sh
-cp ../../src  $container/app
+mkdir -p ${container}
+rm -rf ${container}/* || true
 
-sed -i "s|__OS__|$os|g"                 $container/Dockerfile
-sed -i "s|__MAINTAINER__|$maintainer|g" $container/Dockerfile
+cp Dockerfile    ${container}/Dockerfile
+cp -r ../../src  ${container}/app
 
-docker build -t $hiveContainer $container/.
-docker tag -f $hiveContainer $hiveContainer.$build
+sed -i "s|__OS__|$os|g"                 ${container}/Dockerfile
+sed -i "s|__MAINTAINER__|$maintainer|g" ${container}/Dockerfile
+
+docker build -t ${hiveContainer} ${container}/.
+docker tag -f ${hiveContainer} ${hiveContainer}.${build}

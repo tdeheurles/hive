@@ -1,0 +1,68 @@
+docker:
+  help: manage your local containers
+  commands:
+    ps:
+      help: show the running containers
+      type: call
+      command:
+        - "docker"
+        - "ps"
+      parameters:
+        - name: "-a"
+          help: "show all containers (stopped and running)"
+          action: "store_const"
+    image:
+      help: show the docker images
+      type: call
+      command:
+        - "docker"
+        - "images"
+    volume:
+      help: show the existing volumes
+      type: call
+      command:
+        - "docker"
+        - "volume"
+        - "ls"
+gcloud:
+  help: interact with the google cloud plateform
+  commands:
+    cli:
+      help: run the gcloud CLI
+      type: code
+    init:
+      help: setup the user account and project
+      type: code
+    credentials:
+      help: get the project credentials
+      type: code
+      parameters:
+        - name: "cluster"
+          help: "the name of the cluster to get the credentials"
+kubernetes:
+  help: see or manipulate kubernetes resources
+  commands:
+    status:
+      help: get the cluster resources
+      type: code
+      parameters:
+        - name: "namespace"
+          help: "the namespace from which to get resources"
+    namespaces:
+      help: some help
+      type: code
+    createEnvironment:
+      help: generate a new environment
+      type: code
+    delete:
+      help: delete an environment
+      type: code
+    deploy:
+      help: deploy an application
+      type: code
+    kubectl:
+      help: run kubectl commands
+      type: code
+    scale:
+      help: scale a service in a given namespace
+      type: code

@@ -7,10 +7,12 @@ if [[ $# != 1 ]];then
 fi
 build=$1
 
-cd build
-. ./config.sh
+# fail fats
+set -euo pipefail
 
-cd hive
+. build/config.sh
+
+cd build/hive
 ./build.sh $build
 
 cd ../..

@@ -17,8 +17,9 @@ container="container"
 mkdir -p ${container}
 rm -rf ${container}/* || true
 
-cp Dockerfile    ${container}/Dockerfile
-cp -r ../../src  ${container}/app
+cp Dockerfile   ${container}/Dockerfile
+cp install.sh   ${container}/install.sh
+cp -r ../../src ${container}/app
 
 sed -i "s|__OS__|$os|g"                 ${container}/Dockerfile
 sed -i "s|__MAINTAINER__|$maintainer|g" ${container}/Dockerfile

@@ -67,6 +67,13 @@ kubernetes:
     createEnvironment:
       help: generate a new environment
       type: code
+      parameters:
+        - name: "name"
+          help: "the name of the environment"
+        - name: "--project"
+          help: "A label to point to the project"
+        - name: "--subproject"
+          help: "A lbal to point to a sub-categorie"
     delete:
       help: delete an environment
       type: code

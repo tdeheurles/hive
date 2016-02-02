@@ -52,4 +52,8 @@ class gcloud:
 
     def cli(self, parameters):
         command = parameters["parameters"] if "parameters" in parameters else []
-        self.subprocess.call(self._cli + command)
+        try:
+            self.subprocess.check_call(self._cli + command)
+        except self.subprocess.CalledProcessError:
+            sys.exit(1)
+

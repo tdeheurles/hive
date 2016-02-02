@@ -1,4 +1,5 @@
 import sys
+import string
 from DockerVolume import DockerVolume
 
 
@@ -11,6 +12,19 @@ class docker:
     def cli(self, args):
         command = args["parameters"] if "parameters" in args else []
         self._execute_command(command)
+
+    def run(self, args):
+        path = args["path"]
+        script = args["script"]
+        parameters = args["parameters"]
+        try:
+            self.subprocess.check_call(
+                ["cd /currentFolder" + path + " && ./" + script + " " + string.join(parameters)],
+                shell=True
+            )
+        except OSError as error:
+            sys.exit(error)
+
 
     # public
     def get_docker_volumes(self):

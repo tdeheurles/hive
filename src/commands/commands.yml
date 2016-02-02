@@ -8,6 +8,17 @@ docker:
         - name: "parameters"
           help: "the command to run"
           nargs: "..."
+    run:
+      help: run your code inside a container
+      type: code
+      parameters:
+        - name: "path"
+          help: "the path to the script"
+        - name: "script"
+          help: "the script to run"
+        - name: "parameters"
+          help: "the argument for the script"
+          nargs: "..."
 gcloud:
   help: interact with the google cloud plateform
   commands:

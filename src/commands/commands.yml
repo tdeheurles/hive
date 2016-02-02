@@ -100,3 +100,9 @@ kubernetes:
           help: "the service to scale"
         - name: "count"
           help: "the target count for the service"
+    test_tool:
+      help: start a test/debug service and connect to in it
+      type: code
+      parameters:
+        - name: "namespace"
+          help: "the environment where is running the container"

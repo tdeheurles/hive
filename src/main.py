@@ -1,7 +1,6 @@
 import subprocess
 import yaml
 import importlib
-import sys
 from modele.Menu import Menu
 
 

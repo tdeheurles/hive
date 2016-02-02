@@ -14,16 +14,25 @@ class gcloud:
         self._cli = self.container + ["gcloud"]
         self.subprocess = subprocess
 
-    def init(self, parameters):
+    # commands
+    def init(self, args):
         self.subprocess.check_call(["docker", "volume", "create", "--name=hive_cache_gcloud"])
         self.subprocess.check_call(self._cli + ["init"])
 
-    def credentials(self, parameters):
+    def credentials(self, args):
         self.subprocess.check_call(["docker", "volume", "create", "--name=hive_cache_kube"])
         self.subprocess.check_call(
-            self._cli + ["container", "clusters", "get-credentials", parameters["cluster"]]
+            self._cli + ["container", "clusters", "get-credentials", args["cluster"]]
         )
 
+    def cli(self, args):
+        command = args["parameters"] if "parameters" in args else []
+        try:
+            self.subprocess.check_call(self._cli + command)
+        except self.subprocess.CalledProcessError:
+            sys.exit(1)
+
+    # public
     def get_container(self):
         docker_instance = docker(self.subprocess)
         volumes = [volume.name for volume in docker_instance.get_docker_volumes()]
@@ -52,10 +61,5 @@ class gcloud:
         else:
             return self.container
 
-    def cli(self, parameters):
-        command = parameters["parameters"] if "parameters" in parameters else []
-        try:
-            self.subprocess.check_call(self._cli + command)
-        except self.subprocess.CalledProcessError:
-            sys.exit(1)
+
 

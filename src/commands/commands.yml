@@ -8,38 +8,6 @@ docker:
         - name: "parameters"
           help: "the command to run"
           nargs: "..."
-    ps:
-      help: show the running containers
-      type: call
-      command:
-        - "docker"
-        - "ps"
-      parameters:
-        - name: "-a"
-          help: "show all containers (stopped and running)"
-          action: "store_const"
-    image:
-      help: show the docker images
-      type: call
-      command:
-        - "docker"
-        - "images"
-    rm:
-      help: remove a docker container
-      type: call
-      command:
-        - "docker"
-        - "rm"
-      parameters:
-        - name: "container_id"
-          help: "the container id you want to remove (3 or 4 first letters is sufficient). Get it with <docker ps -a>"
-    volume:
-      help: show the existing volumes
-      type: call
-      command:
-        - "docker"
-        - "volume"
-        - "ls"
 gcloud:
   help: interact with the google cloud plateform
   commands:

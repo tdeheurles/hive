@@ -14,8 +14,9 @@ class kubernetes:
         self.subprocess = subprocess
         self._cli = gcloud(subprocess).get_container() + ["kubectl"]
 
-    def status(self, parameters):
-        namespace = "--namespace=" + parameters["namespace"]
+    # commands
+    def status(self, args):
+        namespace = "--namespace=" + args["namespace"]
         print "\n\033[92mSERVICES\n\033[0m"
         self.subprocess.check_call(self._cli + ["get", "services", namespace])
         print "\n\033[92mRC\n\033[0m"
@@ -29,18 +30,12 @@ class kubernetes:
         print "\n\033[92mNODES\n\033[0m"
         self.subprocess.check_call(self._cli + ["get", "nodes", namespace])
 
-    def execute_command(self, command):
-        try:
-            self.subprocess.check_call(self._cli + command)
-        except self.subprocess.CalledProcessError:
-            sys.exit(1)
-
     def namespaces(self, args):
         self.subprocess.check_call(self._cli + ["get", "ns"])
 
     def cli(self, args):
         command = args["parameters"] if "parameters" in args else []
-        self.execute_command(command)
+        self._execute_command(command)
 
     def create_environment(self, args):
         manifest_factory = ManifestFactory()
@@ -48,10 +43,10 @@ class kubernetes:
         self._create_resource(manifest, '/hive_share/kubernetes/namespaces', '/namespace.json')
 
     def delete(self, args):
-        self.execute_command(["delete", "ns", args["name"]])
+        self._execute_command(["delete", "ns", args["name"]])
 
     def scale(self, args):
-        self.execute_command([
+        self._execute_command([
             "scale",
             "--namespace=" + args["namespace"],
             "--replicas=" + args["count"],
@@ -77,7 +72,7 @@ class kubernetes:
             result = self._wait_for_pod_to_run(pod, namespace)
 
             if result == 0:
-                self.execute_command(
+                self._execute_command(
                     ["exec", "-ti", "--namespace=" + namespace, pod.name, "bash"]
                 )
             else:
@@ -85,6 +80,7 @@ class kubernetes:
         else:
             sys.exit("failed to connect to a testtool pod")
 
+    # helpers
     def _get_pods_by_name(self, name, namespace):
         call = self._get_pods(namespace)
         kubernetes_pods = KubernetesPod.pods_from_api_call(call)
@@ -115,7 +111,7 @@ class kubernetes:
         with open(path + file_name, 'w') as f:
             f.write(output)
 
-        self.execute_command(["create", "-f", path + file_name])
+        self._execute_command(["create", "-f", path + file_name])
 
     def _wait_for_pod_to_run(self, origin_pod, namespace):
         attempt = 0
@@ -133,3 +129,9 @@ class kubernetes:
             time.sleep(5)
             attempt += 1
         return 1
+
+    def _execute_command(self, command):
+        try:
+            self.subprocess.check_call(self._cli + command)
+        except self.subprocess.CalledProcessError:
+            sys.exit(1)

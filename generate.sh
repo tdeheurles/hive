@@ -13,6 +13,6 @@ set -euo pipefail
 . build/config.sh
 
 cd build/hive
-./build.sh $build
+./build.sh ${build}
 
 cd ../..

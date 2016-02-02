@@ -42,7 +42,7 @@ gcloud:
       parameters:
         - name: "parameters"
           help: "the command to run with gcloud CLI"
-          nargs: "*"
+          nargs: "..."
     init:
       help: setup the user account and project
       type: code
@@ -64,7 +64,7 @@ kubernetes:
     namespaces:
       help: some help
       type: code
-    createEnvironment:
+    create_environment:
       help: generate a new environment
       type: code
       parameters:
@@ -73,20 +73,23 @@ kubernetes:
         - name: "--project"
           help: "A label to point to the project"
         - name: "--subproject"
-          help: "A lbal to point to a sub-categorie"
+          help: "A label to point to a sub-categorie"
     delete:
       help: delete an environment
       type: code
-    deploy:
-      help: deploy an application
-      type: code
+      parameters:
+        - name: "name"
+          help: "the name of the environment to delete"
+#    deploy:
+#      help: deploy an application
+#      type: code
     cli:
       help: run kubectl commands
       type: code
       parameters:
         - name: "parameters"
           help: "the command to run with kubectl (the kubernetes CLI)"
-          nargs: "*"
-    scale:
-      help: scale a service in a given namespace
-      type: code
+          nargs: "..."
+#    scale:
+#      help: scale a service in a given namespace
+#      type: code

@@ -8,6 +8,9 @@ if [[ ${DOCKER_MACHINE_NAME} == "default" ]];then
 fi
 
 docker run -ti                                  \
+  -v hive_log:/hive_log                         \
+  -v hive_share:/hive_share                     \
   -v //var/run/docker.sock:/var/run/docker.sock \
   -v ${dockerBinary}:/usr/bin/docker            \
+  -v /$(pwd):/currentFolder                     \
   ${hiveContainer} $@

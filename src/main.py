@@ -3,6 +3,7 @@ import yaml
 import importlib
 from modele.Menu import Menu
 
+
 stream = open("commands/commands.yml", 'r')
 commands = yaml.load(stream)
 

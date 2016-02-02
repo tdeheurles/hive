@@ -1,6 +1,8 @@
 import sys
+import os
 from gcloud import gcloud
-
+from ManifestFactory import ManifestFactory
+import json
 
 class kubernetes:
     def __init__(self, subprocess):
@@ -31,3 +33,20 @@ class kubernetes:
             self.subprocess.check_call(self._cli + command)
         except self.subprocess.CalledProcessError:
             sys.exit(1)
+
+    def create_environment(self, parameters):
+        manifest_factory = ManifestFactory()
+        manifest = manifest_factory.new_namespace(parameters)
+        output = json.dumps(manifest)
+
+        path = '/hive_share/kubernetes'
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        with open(path + '/namespace.yml', 'w') as f:
+            f.write(output)
+
+        self.subprocess.check_call(self._cli + ["create", "-f", path + "/namespace.yml"])
+
+    def delete(self, args):
+        self.subprocess.check_call(self._cli + ["delete", "ns", args["name"]])

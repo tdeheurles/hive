@@ -8,6 +8,7 @@ class gcloud:
             "docker", "run", "-ti",
             "-v", "hive_cache_gcloud:/root/.config",
             "-v", "hive_cache_kube:/root/.kube",
+            "-v", "hive_share:/hive_share",
             "weareadaptive/gcloud:1.0"
         ]
         self._cli = self.container + ["gcloud"]

@@ -1,5 +1,5 @@
 import sys
-from docker import get_docker_volumes
+from docker import docker
 
 
 class gcloud:
@@ -25,7 +25,8 @@ class gcloud:
         )
 
     def get_container(self):
-        volumes = [volume.name for volume in get_docker_volumes()]
+        docker_instance = docker(self.subprocess)
+        volumes = [volume.name for volume in docker_instance.get_docker_volumes()]
 
         if "hive_cache_gcloud" not in volumes:
             print """

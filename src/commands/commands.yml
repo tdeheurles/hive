@@ -1,6 +1,13 @@
 docker:
   help: manage your local containers
   commands:
+    cli:
+      help: run docker commands (for windows/mac, the commands are passed directly to the docker client of the VM, fixing some issues)
+      type: code
+      parameters:
+        - name: "parameters"
+          help: "the command to run"
+          nargs: "..."
     ps:
       help: show the running containers
       type: call

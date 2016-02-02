@@ -90,6 +90,13 @@ kubernetes:
         - name: "parameters"
           help: "the command to run with kubectl (the kubernetes CLI)"
           nargs: "..."
-#    scale:
-#      help: scale a service in a given namespace
-#      type: code
+    scale:
+      help: scale a service in a given namespace
+      type: code
+      parameters:
+        - name: "namespace"
+          help: "the environment where is running the container"
+        - name: "service"
+          help: "the service to scale"
+        - name: "count"
+          help: "the target count for the service"

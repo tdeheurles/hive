@@ -1,6 +1,7 @@
 import subprocess
 import yaml
 import importlib
+import sys
 from modele.Menu import Menu
 
 
@@ -9,9 +10,10 @@ commands = yaml.load(stream)
 
 menu = Menu()
 
-args = menu.parse(commands)
-commandName = args.command
-commandContent = commands[args.service]["commands"][args.command]
+args = menu.parse(commands, "hive_service", "hive_command")
+
+commandName = args.hive_command
+commandContent = commands[args.hive_service]["commands"][args.hive_command]
 commandType = commandContent['type']
 commandParameters = commandContent["parameters"] if "parameters" in commandContent else []
 
@@ -26,6 +28,6 @@ if commandType == "call":
     subprocess.call(commandContent['command'] + parameter)
 
 if commandType == "code":
-    module = importlib.import_module("commands." + args.service, package=None)
-    service = getattr(module, args.service)(subprocess)
+    module = importlib.import_module("commands." + args.hive_service, package=None)
+    service = getattr(module, args.hive_service)(subprocess)
     result = getattr(service, commandName)(parameters)

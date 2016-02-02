@@ -5,9 +5,8 @@ class Menu:
     def __init__(self):
         pass
 
-    def parse(self, commands):
+    def parse(self, commands, service_name, command_name):
         main_name = "main"
-        service_name = "service"
 
         parsers = {
             main_name: Parser(prog='hive')
@@ -16,7 +15,7 @@ class Menu:
         subparsers = {
             service_name: parsers[main_name].add_subparsers(
                 title=service_name,
-                dest="service"
+                dest=service_name
             )
         }
 
@@ -26,7 +25,7 @@ class Menu:
                 commandName, help=command["help"]
             )
             subparsers[commandName] = parsers[commandName].add_subparsers(
-                title="commands", dest="command"
+                title=command_name, dest=command_name
             )
 
             for subCommandName in command["commands"]:

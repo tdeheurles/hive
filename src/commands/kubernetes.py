@@ -24,19 +24,22 @@ class kubernetes:
         print "\n\033[92mNODES\n\033[0m"
         self.subprocess.check_call(self._cli + ["get", "nodes", namespace])
 
-    def namespaces(self, parameters):
-        self.subprocess.check_call(self._cli + ["get", "ns"])
-
-    def cli(self, parameters):
-        command = parameters["parameters"] if "parameters" in parameters else []
+    def execute_command(self, command):
         try:
             self.subprocess.check_call(self._cli + command)
         except self.subprocess.CalledProcessError:
             sys.exit(1)
 
-    def create_environment(self, parameters):
+    def namespaces(self, args):
+        self.subprocess.check_call(self._cli + ["get", "ns"])
+
+    def cli(self, args):
+        command = args["parameters"] if "parameters" in args else []
+        self.execute_command(command)
+
+    def create_environment(self, args):
         manifest_factory = ManifestFactory()
-        manifest = manifest_factory.new_namespace(parameters)
+        manifest = manifest_factory.new_namespace(args)
         output = json.dumps(manifest)
 
         path = '/hive_share/kubernetes'
@@ -46,7 +49,17 @@ class kubernetes:
         with open(path + '/namespace.yml', 'w') as f:
             f.write(output)
 
-        self.subprocess.check_call(self._cli + ["create", "-f", path + "/namespace.yml"])
+        self.execute_command(["create", "-f", path + "/namespace.yml"])
 
     def delete(self, args):
-        self.subprocess.check_call(self._cli + ["delete", "ns", args["name"]])
+        self.execute_command(["delete", "ns", args["name"]])
+
+    def scale(self, args):
+        print args
+        self.execute_command([
+            "scale",
+            "--namespace=" + args["namespace"],
+            "--replicas=" + args["count"],
+            "rc", args["service"]
+        ])
+        #./kubectl scale --namespace=$namespace --replicas=$count rc $service

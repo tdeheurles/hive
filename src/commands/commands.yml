@@ -12,6 +12,9 @@ docker:
       help: run your code inside a container
       type: code
       parameters:
+        - name: "--timed"
+          help: "write duration of process at the end"
+          action: "store_const"
         - name: "path"
           help: "the path to the script"
         - name: "script"

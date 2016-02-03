@@ -1,4 +1,4 @@
-from modele.Parser import Parser
+from Parser import Parser
 
 
 class Menu:

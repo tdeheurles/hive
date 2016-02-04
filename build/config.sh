@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-os="ubuntu:15.10"
+os="ubuntu:14.04.2"
 maintainer="thibault deheurles <tdeheurles@gmail.com>"
 
 hiveMinor="0"

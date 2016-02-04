@@ -1,6 +1,19 @@
 docker:
   help: manage your local containers
   commands:
+    build:
+      help: take a script and build
+      type: code
+      parameters:
+        - name: "--config"
+          help: "the path to a config file"
+        - name: "path"
+          help: "the path to the script"
+        - name: "script"
+          help: "the script name"
+        - name: "parameters"
+          help: "list of arguments for the script"
+          nargs: "..."
     cli:
       help: run docker commands (for windows/mac, the commands are passed directly to the docker client of the VM, fixing some issues)
       type: code
@@ -69,9 +82,15 @@ kubernetes:
       parameters:
         - name: "name"
           help: "the name of the environment to delete"
-#    deploy:
-#      help: deploy an application
-#      type: code
+    create:
+      help: deploy a kubernetes resource
+      type: code
+      parameters:
+        - name: "path"
+          help: "the path to the resource manifest"
+        - name: "parameters"
+          help: "a list of key value to update the manifest"
+          nargs: "..."
     cli:
       help: run kubectl commands
       type: code

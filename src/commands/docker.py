@@ -1,6 +1,7 @@
-import time
-import sys
 import string
+import sys
+import time
+
 from DockerVolume import DockerVolume
 
 
@@ -36,6 +37,57 @@ class docker:
         if error is not None:
             sys.exit(error)
 
+    def build(self, args):
+        path = "/currentFolder/" + args["path"]
+        script = args["script"]
+        parameters = args["parameters"]
+
+        # read config
+        import yaml
+        with open("/currentFolder/" + args["config"], 'r') as f:
+            config = yaml.load(f.read())["spec"]
+
+        # patterns
+        import os
+        import re
+        added_files = []
+        for pattern_file in [f for f in os.listdir(path) if f[:5] == "hive."]:
+            with open(path + "/" + pattern_file, 'r') as stream:
+                pattern = stream.read()
+
+            matches = re.findall("<%.*?%>", pattern, re.MULTILINE)
+            for match in matches:
+                arg = match.translate(None, '<% >').split('.')
+
+                value = config
+                for i in range(len(arg)):
+                    key = arg[i]
+                    if key == "args":
+                        value = parameters[parameters.index(arg[i+1]) + 1]
+                        break
+                    else:
+                        value = value[key]
+
+                pattern = pattern.replace(match, value)
+
+            new_name = pattern_file[5:]
+            added_files.append(new_name)
+            with open(path + "/" + new_name, 'w') as stream:
+                stream.write(pattern)
+
+        # run new script
+        exception = None
+        try:
+            self.subprocess.call("cd " + path + " && ./" + script, shell=True)
+        except OSError as error:
+            exception = error
+        finally:
+            for new_file in added_files:
+                os.remove(path + "/" + new_file)
+
+        if exception is not None:
+            sys.exit(exception)
+
     # public
     def get_docker_volumes(self):
         volumes_string = self.subprocess.check_output(["docker", "volume", "ls"]).split('\n')[1:-1]
@@ -49,8 +101,8 @@ class docker:
     def _execute_command(self, command):
         try:
             self.subprocess.check_call(self._cli + command)
-        except self.subprocess.CalledProcessError:
-            sys.exit(1)
+        except self.subprocess.CalledProcessError as error:
+            sys.exit(error.errnu)
 
     def _print_time(self, start_counter, start_date):
         end_date = time.localtime()

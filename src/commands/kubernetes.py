@@ -11,6 +11,7 @@ from KubernetesPod import KubernetesPod
 
 class kubernetes:
     def __init__(self, subprocess):
+        self.resources_path = '/hive_share/kubernetes/manifests'
         self.subprocess = subprocess
         self._cli = gcloud(subprocess).get_container() + ["kubectl"]
 
@@ -40,10 +41,25 @@ class kubernetes:
     def create_environment(self, args):
         manifest_factory = ManifestFactory()
         manifest = manifest_factory.new_namespace(args)
-        self._create_resource(manifest, '/hive_share/kubernetes/namespaces', '/namespace.json')
+        output = json.dumps(manifest)
+        self._create_resource(output, self.resources_path, '/namespace.json')
 
     def delete(self, args):
         self._execute_command(["delete", "ns", args["name"]])
+
+    def create(self, args):
+        path = args["path"]
+        parameters = args["parameters"]
+        if len(parameters) % 2 != 0:
+            sys.exit("parameters need to be key value pairs")
+
+        with open("/currentFolder/" + path, 'r') as f:
+            pattern = f.read()
+
+        for i in range(0, len(parameters), 2):
+            pattern = pattern.replace(parameters[i], parameters[i + 1])
+
+        self._create_resource(pattern, self.resources_path, '/resource')
 
     def scale(self, args):
         self._execute_command([
@@ -102,9 +118,7 @@ class kubernetes:
             testtool_pod, '/hive_share/kubernetes/pods', '/' + namespace + '-testtool.json'
         )
 
-    def _create_resource(self, manifest, path, file_name):
-        output = json.dumps(manifest)
-
+    def _create_resource(self, output, path, file_name):
         if not os.path.exists(path):
             os.makedirs(path)
 
@@ -133,5 +147,5 @@ class kubernetes:
     def _execute_command(self, command):
         try:
             self.subprocess.check_call(self._cli + command)
-        except self.subprocess.CalledProcessError:
+        except self.subprocess.CalledProcessError as error:
             sys.exit(1)

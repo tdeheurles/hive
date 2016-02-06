@@ -20,6 +20,19 @@ class script:
             config = yaml.load(f.read())["spec"]
 
         # patterns
+        added_files = self.generate_hive_files(config, parameters, path)
+        exception = None
+        try:
+            self.subprocess.call("cd " + path + " && ./" + script_name, shell=True)
+        except OSError as error:
+            exception = error
+        finally:
+            self.cleanup(added_files, path)
+
+        if exception is not None:
+            sys.exit(exception)
+
+    def generate_hive_files(self, config, parameters, path):
         added_files = []
         for pattern_file in [f for f in os.listdir(path) if f[:5] == "hive."]:
             with open(path + "/" + pattern_file, 'r') as stream:
@@ -28,7 +41,7 @@ class script:
             matches = re.findall("<%.*?%>", pattern, re.MULTILINE)
             for match in matches:
                 def configuration_error():
-                    self._cleanup(added_files, path)
+                    self.cleanup(added_files, path)
                     sys.exit("No configuration match for parameter " + match + " in file " + pattern_file)
 
                 file_parameter = match.translate(None, '<% >').split('.')
@@ -38,7 +51,7 @@ class script:
                     if key == "args":
                         cli_parameter_position, error = self._cli_parameter(file_parameter, parameters)
                         if error is not None:
-                            self._cleanup(added_files, path)
+                            self.cleanup(added_files, path)
                             sys.exit(error.format(match, pattern_file))
                         value = parameters[cli_parameter_position]
                         break
@@ -50,8 +63,9 @@ class script:
                         except AttributeError:
                             configuration_error()
                 try:
-                    pattern = pattern.replace(match, value)
-                except TypeError:
+                    pattern = pattern.replace(match, str(value))
+                except TypeError as error:
+                    print error
                     configuration_error()
 
             new_name = pattern_file[5:]
@@ -59,17 +73,7 @@ class script:
             with open(path + "/" + new_name, 'w') as stream:
                 stream.write(pattern)
 
-        # run new script
-        exception = None
-        try:
-            self.subprocess.call("cd " + path + " && ./" + script_name, shell=True)
-        except OSError as error:
-            exception = error
-        finally:
-            self._cleanup(added_files, path)
-
-        if exception is not None:
-            sys.exit(exception)
+        return added_files
 
     def run(self, args):
         start_date = time.localtime()
@@ -93,7 +97,7 @@ class script:
         if error is not None:
             sys.exit(error)
 
-    def _cleanup(self, added_files, path):
+    def cleanup(self, added_files, path):
         for new_file in added_files:
             os.remove(path + "/" + new_file)
 

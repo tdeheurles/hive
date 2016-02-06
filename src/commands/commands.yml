@@ -45,10 +45,10 @@ kubernetes:
       parameters:
         - name: "deployment_file"
           help: "the path to your deployment manifest"
-        - name: "configuration_file"
-          help: "the path to your configuration manifest"
-        - name: "templates_folder"
-          help: "the path to your templates folder"
+        - name: "environment"
+          help: "the name of the environment where you want to deploy your application"
+        - name: "build"
+          help: "the build identifiant that you want to deploy"
     create_environment:
       help: generate a new environment
       type: code

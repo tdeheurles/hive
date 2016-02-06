@@ -4,6 +4,7 @@ import os
 import string
 import yaml
 import json
+from script import script
 from gcloud import gcloud
 from ManifestFactory import ManifestFactory
 from KubernetesPod import KubernetesPod
@@ -97,17 +98,82 @@ class kubernetes:
             sys.exit("failed to connect to a testtool pod")
 
     def deploy(self, args):
-        templates_folder = args["templates_folder"]
+        def create_environment():
+            create_environment_args = {"name": environment, "project": deployment["project"]}
+            if "subproject" in args:
+                create_environment_args["subproject"] = args["subproject"]
+            self.create_environment(create_environment_args)
 
-        with open("/currentFolder/" + args["configuration_file"], 'r') as f:
-            configuration = yaml.load(f.read())
+        def read_files():
+            with open("/currentFolder/" + args["deployment_file"], 'r') as f:
+                # initial deployment is the file with the hive variable in it
+                dep = yaml.load(f.read())["spec"]
+                configuration_file = dep["configuration"]
+                folder = dep["templates"]
+            with open("/currentFolder/" + configuration_file, 'r') as f:
+                conf = yaml.load(f.read())["spec"]
+            return dep, folder, conf
 
-        with open("/currentFolder/" + args["deployment_file"], 'r') as f:
-            deployment = yaml.load(f.read())
+        build = args["build"]
+        environment = args["environment"]
 
-        print templates_folder
-        print configuration
-        print deployment
+        deployment, templates_folder, configuration = read_files()
+
+        create_environment()
+
+        hive_file_transpiler = script(None)
+
+        # services
+        for service_name in [svc["name"] for svc in deployment["services"]]:
+            hive_file_transpiler.generate_hive_files(
+                configuration,
+                ["build", build],
+                "/currentFolder/" + templates_folder + "/" + service_name
+            )
+
+        for service in deployment["services"]:
+            path = "/currentFolder/" + templates_folder + "/" + service["name"]
+            with open(path + "/" + "svc.yml", "r") as f:
+                template = yaml.load(f.read())
+
+            # add namespace
+            template["metadata"]["namespace"] = environment
+
+            # add public=true for nsgate
+            if "public" in service:
+                if "labels" not in template["metadata"]:
+                    template["metadata"]["labels"] = {}
+                template["metadata"]["labels"]["public"] = "true"
+
+            self._create_resource(
+                json.dumps(template),
+                self.resources_path,
+                service["name"] + "svc"
+            )
+            hive_file_transpiler.cleanup(["svc.yml"], path)
+
+        # replication controller
+        for rc_name in [rc["name"] for rc in deployment["replicationController"]]:
+            hive_file_transpiler.generate_hive_files(
+                configuration,
+                ["build", build],
+                "/currentFolder/" + templates_folder + "/" + rc_name
+            )
+
+        for rc in deployment["replicationController"]:
+            path = "/currentFolder/" + templates_folder + "/" + rc["name"]
+            with open(path + "/" + "rc.yml", "r") as f:
+                template = yaml.load(f.read())
+
+            # add namespace
+            template["metadata"]["namespace"] = environment
+
+            self._create_resource(
+                json.dumps(template),
+                self.resources_path,
+                rc["name"] + "rc"
+            )
+            hive_file_transpiler.cleanup(["rc.yml"], path)
 
     # helpers
     def _get_pods_by_name(self, name, namespace):

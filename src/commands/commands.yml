@@ -1,39 +1,12 @@
 docker:
   help: manage your local containers
   commands:
-    build:
-      help: take a script and build
-      type: code
-      parameters:
-        - name: "--config"
-          help: "the path to a config file"
-        - name: "path"
-          help: "the path to the script"
-        - name: "script"
-          help: "the script name"
-        - name: "parameters"
-          help: "list of arguments for the script"
-          nargs: "..."
     cli:
       help: run docker commands (for windows/mac, the commands are passed directly to the docker client of the VM, fixing some issues)
       type: code
       parameters:
         - name: "parameters"
           help: "the command to run"
-          nargs: "..."
-    run:
-      help: run your code inside a container
-      type: code
-      parameters:
-        - name: "--timed"
-          help: "write duration of process at the end"
-          action: "store_const"
-        - name: "path"
-          help: "the path to the script"
-        - name: "script"
-          help: "the script to run"
-        - name: "parameters"
-          help: "the argument for the script"
           nargs: "..."
 gcloud:
   help: interact with the google cloud plateform
@@ -66,6 +39,16 @@ kubernetes:
     namespaces:
       help: some help
       type: code
+    deploy:
+      help: deploy an application
+      type: code
+      parameters:
+        - name: "deployment_file"
+          help: "the path to your deployment manifest"
+        - name: "configuration_file"
+          help: "the path to your configuration manifest"
+        - name: "templates_folder"
+          help: "the path to your templates folder"
     create_environment:
       help: generate a new environment
       type: code
@@ -114,3 +97,36 @@ kubernetes:
       parameters:
         - name: "namespace"
           help: "the environment where is running the container"
+script:
+  help: run script with hive parameters
+  commands:
+    hive_run:
+      help: run your code inside a container, using hive parameter system
+      type: code
+      parameters:
+        - name: "--config"
+          help: "the path to a config file"
+        - name: "--timed"
+          help: "write duration of process at the end"
+          action: "store_const"
+        - name: "path"
+          help: "the path to the script"
+        - name: "script"
+          help: "the script name"
+        - name: "parameters"
+          help: "list of arguments for the script"
+          nargs: "..."
+    run:
+      help: run your code inside a container
+      type: code
+      parameters:
+        - name: "--timed"
+          help: "write duration of process at the end"
+          action: "store_const"
+        - name: "path"
+          help: "the path to the script"
+        - name: "script"
+          help: "the script to run"
+        - name: "parameters"
+          help: "the argument for the script"
+          nargs: "..."

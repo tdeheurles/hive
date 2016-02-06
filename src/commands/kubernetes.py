@@ -96,6 +96,19 @@ class kubernetes:
         else:
             sys.exit("failed to connect to a testtool pod")
 
+    def deploy(self, args):
+        templates_folder = args["templates_folder"]
+
+        with open("/currentFolder/" + args["configuration_file"], 'r') as f:
+            configuration = yaml.load(f.read())
+
+        with open("/currentFolder/" + args["deployment_file"], 'r') as f:
+            deployment = yaml.load(f.read())
+
+        print templates_folder
+        print configuration
+        print deployment
+
     # helpers
     def _get_pods_by_name(self, name, namespace):
         call = self._get_pods(namespace)

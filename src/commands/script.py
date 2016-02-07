@@ -16,8 +16,13 @@ class script:
         parameters = args["parameters"]
 
         # read config
-        with open("/currentFolder/" + args["config"], 'r') as f:
-            config = yaml.load(f.read())["spec"]
+        config = None
+        if "config" in args:
+            config_path = "/currentFolder/" + args["config"]
+            if not os.path.isfile(config_path):
+                sys.exit("No file found at " + config_path)
+            with open(config_path, 'r') as f:
+                config = yaml.load(f.read())["spec"]
 
         # patterns
         added_files = self.generate_hive_files(config, parameters, path)
@@ -40,9 +45,11 @@ class script:
 
             matches = re.findall("<%.*?%>", pattern, re.MULTILINE)
             for match in matches:
-                def configuration_error():
+                def configuration_error(message):
                     self.cleanup(added_files, path)
-                    sys.exit("No configuration match for parameter " + match + " in file " + pattern_file)
+                    if message is None:
+                        message = "No configuration match for parameter " + match + " in file " + pattern_file
+                    sys.exit(message)
 
                 file_parameter = match.translate(None, '<% >').split('.')
                 value = config
@@ -56,17 +63,19 @@ class script:
                         value = parameters[cli_parameter_position]
                         break
                     else:
+                        if value is None:
+                            configuration_error("Please, rerun with the config parameter")
                         try:
                             if key not in value.keys():
-                                configuration_error()
+                                configuration_error(None)
                             value = value[key]
                         except AttributeError:
-                            configuration_error()
+                            configuration_error(None)
                 try:
                     pattern = pattern.replace(match, str(value))
                 except TypeError as error:
                     print error
-                    configuration_error()
+                    configuration_error(None)
 
             new_name = pattern_file[5:]
             added_files.append(new_name)

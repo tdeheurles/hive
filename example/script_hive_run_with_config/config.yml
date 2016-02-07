@@ -1,0 +1,6 @@
+apiVersion: v0
+kind: HiveConfig
+spec:
+  version:
+    myproject:
+      major: "1"

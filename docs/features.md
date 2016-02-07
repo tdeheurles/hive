@@ -241,4 +241,265 @@ Our program will build with the number 128 and the parameter 1 from our config f
 
 You can see that you can easily define parameters and run them in your scripts. Hive will control them before invoking your script.
 
+---
+
 ### kubernetes
+
+The `hive kubernetes` commands comes with:
+```
+hive_command:
+    create_environment  generate a new environment
+    delete              delete an environment
+    namespaces          some help
+    deploy              deploy an application
+    create              deploy a kubernetes resource
+    status              get the cluster resources
+    scale               scale a service in a given namespace
+    test_tool           start a test/debug service and connect to in it
+    cli                 run kubectl commands
+```
+
+Note that for this part, you need:
+- a google account
+- a google cloud project (need to give a credit card but it's free for first two months)
+- to start a `google container engine` cluster
+- to init your gcloud with:
+  - `./hive gcloud init`
+  - `./hive gcloud crdentials CLUSTER_NAME`
+
+##### create_environment
+```
+usage: hive kubernetes create_environment [-h] [--project PROJECT]
+                                          [--subproject SUBPROJECT]
+                                          name
+
+positional arguments:
+  name                  the name of the environment
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --project PROJECT     A label to point to the project
+  --subproject SUBPROJECT
+                        A label to point to a sub-categorie
+```
+So we can create our environment with:
+```bash
+$ ./hive kubernetes create_environment hive-demo
+```
+```
+namespace "hive-demo" created
+```
+We can also add labels to your environment (kubernetes namespace) by passing the `--project` and `--subproject` parameters:
+
+```bash
+$ ./hive kubernetes create_environment hive-demo --project main-project-name --subproject my-subproject
+```
+
+##### namespaces
+We can look to our environment by running:
+```bash
+./hive kubernetes namespaces
+```
+```
+NAME          LABELS                                               STATUS    AGE
+default       <none>                                               Active    60d
+hive-demo     project=main-project-name,subproject=my-subproject   Active    10s
+kube-system   <none>                                               Active    60d
+```
+
+##### deploy
+Hive comes with a simple solution to deploy a whole project made of multiple services.
+
+We need to:
+- create a yaml file to describe our project
+- create a service/replicationController manifest template for each resource
+
+We can:
+- define all our parameters in a configuration file
+
+Let's start with [an example project](../example/kubernetes_deploy).
+
+The example will run a nginx server by using a replicationController and service.
+
+First, let's create the `deployment.yml` manifest and put it in the project folder:
+```yaml
+apiVersion: v0
+kind: HiveDeployment
+spec:
+  project:            simple-nginx
+  deploymentStrategy: Recreate
+  configuration:      config.yml
+  templates:          templates
+
+  services:
+    - name: nginx-demo
+
+  replicationController:
+    - name: nginx-demo
+```
+This define:
+- a name for project that will be used for labels.
+- a strategy to delete and recreate or to automatically rolling update (rolling update need to be implemented)
+- the `path` to the `config file` and to the `templates folder`
+- the service name (that need to match a folder in the templates folder)
+- the replication controller name (that need to match a folder in the templates folder)
+
+Then we define our kubernetes manifests in `templates/nginx-demo/hive.rc.yml` and `templates/nginx-demo/hive.svc.yml`:
+```yaml
+# hive.svc.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: "nginx-demo"
+  labels:
+    name:  "nginx-demo"
+    major: "<% version.simple-nginx.nginx-demo.major %>"
+spec:
+  selector:
+    name:  "nginx-demo"
+    major: "<% version.simple-nginx.nginx-demo.major %>"
+  ports:
+  - port: 80
+    targetPort: 80
+    name: "http"
+```
+```yaml
+# hive.rc.yml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: "nginx-demo"
+  labels:
+    name: "nginx-demo"
+    major: "<% version.simple-nginx.nginx-demo.major %>"
+    minor: "<% version.simple-nginx.nginx-demo.minor %>"
+    build: "<% args.build %>" 
+spec:
+  replicas: 1
+  selector:
+    name: "nginx-demo"
+    major: "<% version.simple-nginx.nginx-demo.major %>"
+    minor: "<% version.simple-nginx.nginx-demo.minor %>"
+    build: "<% args.build %>"
+  template:
+    metadata:
+      labels:
+        name: "nginx-demo"
+        major: "<% version.simple-nginx.nginx-demo.major %>"
+        minor: "<% version.simple-nginx.nginx-demo.minor %>"
+        build: "<% args.build %>"
+    spec:
+      containers:
+      - name: "nginx-demo"
+        image: "<% container.simple-nginx.nginx-demo %>:<% version.simple-nginx.nginx-demo.major %>.<% version.simple-nginx.nginx-demo.minor %>.<% args.build %>"
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 80
+            name: "http"
+```
+
+We can write our configuration `config.yml`:
+```yaml
+apiVersion: v0
+kind: HiveConfig
+spec:
+  container:
+    simple-nginx:
+      nginx-demo: "nginx"
+  version:
+    simple-nginx:
+      nginx-demo:
+        major: "1"
+        minor: "9"
+```
+
+And finally we will just deploy our project. Look at the signature:
+
+```bash
+$ ./hive kubernetes deploy
+error: too few arguments
+usage: hive kubernetes deploy [-h] deployment_file environment build
+
+positional arguments:
+  deployment_file  the path to your deployment manifest
+  environment      the name of the environment where you want to deploy your
+                   application
+  build            the build identifiant that you want to deploy
+
+optional arguments:
+  -h, --help       show this help message and exit
+```
+
+So, let's invoke the command:
+```bash
+./hive kubernetes deploy deployment.yml hive-demo 7
+```
+```
+namespace "hive-demo" deleted
+namespace "hive-demo" created
+service "nginx-demo" created
+replicationcontroller "nginx-demo" created
+```
+The `hive-demo` environment is deleted automatically as the startegy is set to `Recreate`, then we can see the namespace, service and replication controller created.
+
+Look at the status of our environment:
+```bash
+$ ./hive kubernetes status hive-demo
+```
+```
+SERVICES
+
+NAME       CLUSTER_IP       EXTERNAL_IP   PORT(S)   SELECTOR                 AGE
+nginx-demo 10.139.253.146   <none>        80/TCP    major=1,name=nginx-demo  2m
+
+RC
+
+CONTROLLER   CONTAINER(S)   IMAGE(S)      SELECTOR                                  REPLICAS   AGE
+nginx-demo   nginx-demo     nginx:1.9.7   build=7,major=1,minor=9,name=nginx-demo   1          2m
+
+PODS
+
+NAME               READY     STATUS    RESTARTS   AGE
+nginx-demo-e0rhe   1/1       Running   0          2m
+
+ENDPOINTS
+
+NAME       ENDPOINTS   AGE
+nginx-demo <none>      2m
+
+INGRESS
+
+NAME      RULE      BACKEND   ADDRESS
+
+NODES
+
+NAME                             LABELS                                                  STATUS    AGE
+gke-cluster-74a736d8-node-lmjw   kubernetes.io/hostname=gke-cluster-74a736d8-node-lmjw   Ready     23h
+gke-cluster-74a736d8-node-zxeo   kubernetes.io/hostname=gke-cluster-74a736d8-node-zxeo   Ready     13d
+```
+
+Finally go to your cluster and open the external IP for your service:
+
+```
+Welcome to nginx!
+
+If you see this page, the nginx web server is successfully installed and working. Further configuration is required.
+
+For online documentation and support please refer to nginx.org.
+Commercial support is available at nginx.com.
+
+Thank you for using nginx.
+```
+
+##### create
+TODO
+##### status
+TODO
+##### scale
+TODO
+##### test_tool
+TODO
+##### delete
+TODO
+##### cli
+TODO

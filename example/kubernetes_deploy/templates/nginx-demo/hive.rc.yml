@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: "nginx-demo"
+  labels:
+    name: "nginx-demo"
+    major: "<% version.simple-nginx.nginx-demo.major %>"
+    minor: "<% version.simple-nginx.nginx-demo.minor %>"
+    build: "<% args.build %>" 
+spec:
+  replicas: 1
+  selector:
+    name: "nginx-demo"
+    major: "<% version.simple-nginx.nginx-demo.major %>"
+    minor: "<% version.simple-nginx.nginx-demo.minor %>"
+    build: "<% args.build %>"
+  template:
+    metadata:
+      labels:
+        name: "nginx-demo"
+        major: "<% version.simple-nginx.nginx-demo.major %>"
+        minor: "<% version.simple-nginx.nginx-demo.minor %>"
+        build: "<% args.build %>"
+    spec:
+      containers:
+      - name: "nginx-demo"
+        image: "<% container.simple-nginx.nginx-demo %>:<% version.simple-nginx.nginx-demo.major %>.<% version.simple-nginx.nginx-demo.minor %>.<% args.build %>"
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 80
+            name: "http"

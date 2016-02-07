@@ -1,0 +1,11 @@
+apiVersion: v0
+kind: HiveConfig
+spec:
+  container:
+    simple-nginx:
+      nginx-demo: "nginx"
+  version:
+    simple-nginx:
+      nginx-demo:
+        major: "1"
+        minor: "9"

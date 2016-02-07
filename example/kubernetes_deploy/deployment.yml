@@ -1,0 +1,14 @@
+apiVersion: v0
+kind: HiveDeployment
+spec:
+  project:            simple-nginx
+  deploymentStrategy: Recreate
+  configuration:      config.yml
+  templates:          templates
+
+  services:
+    - name: nginx-demo
+      public: true
+
+  replicationController:
+    - name: nginx-demo

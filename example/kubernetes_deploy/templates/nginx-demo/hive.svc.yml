@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "nginx-demo"
+  labels:
+    name:  "nginx-demo"
+    major: "<% version.simple-nginx.nginx-demo.major %>"
+spec:
+  selector:
+    name:  "nginx-demo"
+    major: "<% version.simple-nginx.nginx-demo.major %>"
+  ports:
+  - port: 80
+    targetPort: 80
+    name: "http"

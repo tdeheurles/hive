@@ -8,6 +8,7 @@ from script import script
 from gcloud import gcloud
 from ManifestFactory import ManifestFactory
 from KubernetesPod import KubernetesPod
+from KubernetesNamespace import KubernetesNamespace
 
 
 class kubernetes:
@@ -98,82 +99,23 @@ class kubernetes:
             sys.exit("failed to connect to a testtool pod")
 
     def deploy(self, args):
-        def create_environment():
-            create_environment_args = {"name": environment, "project": deployment["project"]}
-            if "subproject" in args:
-                create_environment_args["subproject"] = args["subproject"]
-            self.create_environment(create_environment_args)
-
-        def read_files():
-            with open("/currentFolder/" + args["deployment_file"], 'r') as f:
-                # initial deployment is the file with the hive variable in it
-                dep = yaml.load(f.read())["spec"]
-                configuration_file = dep["configuration"]
-                folder = dep["templates"]
-            with open("/currentFolder/" + configuration_file, 'r') as f:
-                conf = yaml.load(f.read())["spec"]
-            return dep, folder, conf
-
         build = args["build"]
         environment = args["environment"]
 
-        deployment, templates_folder, configuration = read_files()
+        deployment, templates_folder, configuration = self._read_files(args)
 
-        create_environment()
+        self._control_deployment_strategy(args, deployment, environment)
 
         hive_file_transpiler = script(None)
 
-        # services
-        for service_name in [svc["name"] for svc in deployment["services"]]:
-            hive_file_transpiler.generate_hive_files(
-                configuration,
-                ["build", build],
-                "/currentFolder/" + templates_folder + "/" + service_name
-            )
-
-        for service in deployment["services"]:
-            path = "/currentFolder/" + templates_folder + "/" + service["name"]
-            with open(path + "/" + "svc.yml", "r") as f:
-                template = yaml.load(f.read())
-
-            # add namespace
-            template["metadata"]["namespace"] = environment
-
-            # add public=true for nsgate
-            if "public" in service:
-                if "labels" not in template["metadata"]:
-                    template["metadata"]["labels"] = {}
-                template["metadata"]["labels"]["public"] = "true"
-
-            self._create_resource(
-                json.dumps(template),
-                self.resources_path,
-                service["name"] + "svc"
-            )
-            hive_file_transpiler.cleanup(["svc.yml"], path)
-
-        # replication controller
-        for rc_name in [rc["name"] for rc in deployment["replicationController"]]:
-            hive_file_transpiler.generate_hive_files(
-                configuration,
-                ["build", build],
-                "/currentFolder/" + templates_folder + "/" + rc_name
-            )
-
-        for rc in deployment["replicationController"]:
-            path = "/currentFolder/" + templates_folder + "/" + rc["name"]
-            with open(path + "/" + "rc.yml", "r") as f:
-                template = yaml.load(f.read())
-
-            # add namespace
-            template["metadata"]["namespace"] = environment
-
-            self._create_resource(
-                json.dumps(template),
-                self.resources_path,
-                rc["name"] + "rc"
-            )
-            hive_file_transpiler.cleanup(["rc.yml"], path)
+        for kind in ["services", "replicationController"]:
+            for resource in deployment[kind]:
+                path = "/currentFolder/" + templates_folder + "/" + resource["name"]
+                self._deploy_create_resource(
+                    kind, path, resource,
+                    hive_file_transpiler,
+                    configuration, build, environment
+                )
 
     # helpers
     def _get_pods_by_name(self, name, namespace):
@@ -228,3 +170,61 @@ class kubernetes:
             self.subprocess.check_call(self._cli + command)
         except self.subprocess.CalledProcessError as error:
             sys.exit(1)
+
+    def _read_files(self, args):
+        with open("/currentFolder/" + args["deployment_file"], 'r') as f:
+            deployment = yaml.load(f.read())["spec"]
+            configuration_file = deployment["configuration"]
+            templates_folder = deployment["templates"]
+
+        with open("/currentFolder/" + configuration_file, 'r') as f:
+            configuration = yaml.load(f.read())["spec"]
+
+        return deployment, templates_folder, configuration
+
+    def _deploy_create_resource(self, kind, path, resource, hive_file_transpiler, configuration, build, environment):
+        hive_file_transpiler.generate_hive_files(
+            configuration,
+            ["build", build],
+            path
+        )
+
+        kind_short_name = "svc" if kind == "services" else "rc"
+
+        with open(path + "/" + kind_short_name + ".yml", "r") as f:
+            template = yaml.load(f.read())
+
+        template["metadata"]["namespace"] = environment
+
+        # add public=true for services to expose
+        if "services" == kind and "public" in resource:
+            if "labels" not in template["metadata"]:
+                template["metadata"]["labels"] = {}
+            template["metadata"]["labels"]["public"] = "true"
+
+        self._create_resource(
+            json.dumps(template),
+            self.resources_path,
+            resource["name"] + kind_short_name
+        )
+        hive_file_transpiler.cleanup([kind_short_name + ".yml"], path)
+
+    def _control_deployment_strategy(self, args, deployment, environment):
+        if "deploymentStrategy" in deployment and deployment["deploymentStrategy"] == "Recreate":
+
+            namespaces = KubernetesNamespace.namespaces_from_api_call(
+                self.subprocess.check_output(self._cli + ["get", "ns"])
+            )
+            for namespace in namespaces:
+                if namespace.name == environment:
+                    self.delete({"name": environment})
+
+            create_environment_args = {
+                "name": environment,
+                "project": deployment["project"]
+            }
+
+            if "subproject" in args:
+                create_environment_args["subproject"] = args["subproject"]
+
+            self.create_environment(create_environment_args)

@@ -30,25 +30,25 @@ Understand that `hive` will access your local docker, so it can start container,
 ### What is done
 
 hive services:
-    - docker                run command with the docker client (for windows/mac, the commands are passed directly to the docker client of the VM, fixing some issues)
-       - cli                run docker commands
-    - gcloud                Start a new container with gcloud installed
-       - init               setup the user account and project
-       - credentials        get the project credentials
-       - cli                run the gcloud CLI
-    - kubernetes            see or manipulate kubernetes resources
-       - namespaces         list the namespaces of your kubernetes cluster
-       - create_environment generate a new environment (namespace)
-       - status             get the cluster resources for a given environment
-       - deploy             deploy a group of resources (using a declarative way)
-       - create             deploy a unique kubernetes resource
-       - scale              scale a service in a given namespace
-       - test_tool          start a test/debug service and connect to it
-       - delete             delete an environment
-       - cli                run kubectl commands
-    - script                run your script under the hive container
-       - hive_run           run your code inside a container, using hive parameter system to simplify your glue
-       - run                run your code inside a container
+- docker                run command with the docker client (for windows/mac, the commands are passed directly to the docker client of the VM, fixing some issues)
+    - cli                run docker commands
+- gcloud                Start a new container with gcloud installed
+    - init               setup the user account and project
+    - credentials        get the project credentials
+    - cli                run the gcloud CLI
+- kubernetes            see or manipulate kubernetes resources
+    - namespaces         list the namespaces of your kubernetes cluster
+    - create_environment generate a new environment (namespace)
+    - status             get the cluster resources for a given environment
+    - deploy             deploy a group of resources (using a declarative way)
+    - create             deploy a unique kubernetes resource
+    - scale              scale a service in a given namespace
+    - test_tool          start a test/debug service and connect to it
+    - delete             delete an environment
+    - cli                run kubectl commands
+- script                run your script under the hive container
+    - hive_run           run your code inside a container, using hive parameter system to simplify your glue
+    - run                run your code inside a container
 
 ### Example
 

@@ -81,7 +81,7 @@ Each time you want to build or deploy:
 - the code inside hive:
    - will be wrote once for all projects (or won't be written if you are just a user ^^)
    - can be tested (harder to do with bash)
-- go [here](docs/features) to see the main features
+- go [here](docs/features.md) to see the main features
 
 ### TODO
 

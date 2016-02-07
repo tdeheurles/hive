@@ -1,5 +1,13 @@
 # Features
 
+- [installation](#installation)
+- [docker](#docker)
+- [gcloud](#gcloud)
+- [script](#script)
+  - [hive script run](#hive-script-run): run with the protection of your container
+  - [hive script hive_run](#hive-script-hive_run): run inside a container with hive parameters system
+- [kubernetes](#kubernetes)
+
 ### Installation
 Copy this script in your project and name it `hive`:
 ```bash
@@ -31,6 +39,8 @@ The second starts the container and shares some volumes:
 - docker.sock and docker binary : to access the docker client
 - current folder : to share the folder from where you run hive
 
+---
+
 ### docker
 The docker CLI is not one of the main features, but it solves some docker toolbox issues across versions.
 At this moment it solves for me:
@@ -54,6 +64,8 @@ Will come some:
 - `./hive docker killAll`
 - etc 
 
+---
+
 ### gcloud
 The hive gcloud commands simplify the google cloud process. Your users/devs won't need to install the gcloud CLI. Just run `./hive gcloud` and you can access gcloud CLI.
 
@@ -63,6 +75,8 @@ To prepare your cluster, you just need to run:
 ./hive gcloud credentials
 ```
 All the credentials will be saved in a volume.
+
+---
 
 ### script
 Hive script commands are still in design process. For now I have two different solutions :
@@ -89,7 +103,7 @@ projectFolder
       ¦- helloworld.sh
 ```
 
-Then we can run it, from the [main folder of the project](../example/script_run):
+Then we can run it, from the [main folder of the project](../example/script_run):  
 the signature is : `./hive script run PATH SCRIPT PARAMETERS`
 ```bash
 ./hive script run //src helloworld.sh
@@ -227,3 +241,4 @@ Our program will build with the number 128 and the parameter 1 from our config f
 
 You can see that you can easily define parameters and run them in your scripts. Hive will control them before invoking your script.
 
+### kubernetes

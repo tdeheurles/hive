@@ -1,15 +1,16 @@
-import time
-import sys
+import json
 import os
 import string
+import sys
+import time
 import yaml
-import json
-from script import script
+
 from gcloud import gcloud
-from ManifestFactory import ManifestFactory
-from KubernetesPod import KubernetesPod
-from KubernetesNamespace import KubernetesNamespace
-from Command import Command
+from script import script
+from modele.Command import Command
+from modele.KubernetesNamespace import KubernetesNamespace
+from modele.KubernetesPod import KubernetesPod
+from modele.ManifestFactory import ManifestFactory
 
 
 class kubernetes(Command):

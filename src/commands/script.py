@@ -1,10 +1,12 @@
-import sys
-import yaml
-import re
 import os
-import time
+import re
 import string
-from Command import Command
+import sys
+import time
+
+import yaml
+
+from modele.Command import Command
 
 
 class script(Command):

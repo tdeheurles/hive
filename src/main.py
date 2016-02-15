@@ -5,7 +5,7 @@ import os
 from modele.Menu import Menu
 
 hive_home = os.environ["HIVE_HOME"]
-options = ["verbose"]
+options = []
 
 stream = open("commands/commands.yml", 'r')
 commands = yaml.load(stream)

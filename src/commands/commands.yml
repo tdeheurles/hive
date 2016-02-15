@@ -27,6 +27,40 @@ gcloud:
       parameters:
         - name: "cluster"
           help: "the name of the cluster to get the credentials"
+    create_cluster:
+      help: create a GoogleContainerEngine cluster
+      type: code
+      parameters:
+        - name: "name"
+          help: "the name of your cluster"
+        - name: "zone"
+          help: "the google zone for your cluster, run --show parameter to see availables onces"
+        - name: "type"
+          help: "the kind of machine you want to use, run --show to see availables onces"
+        - name: "--quantity"
+          help: "set the number of node for the cluster, default to 1"
+    show:
+      help: return the available zones and machines-types before existing
+      type: code
+    autoscale:
+      help: update a cluster configuration
+      type: code
+      parameters:
+        - name: "name"
+          help: "the cluster to update"
+        - name: "target"
+          help: "the CPU percentage gcloud will target (switch autoscale on), 0.75 for 75/100"
+        - name: "max"
+          help: "maximun number of node"
+        - name: "cd"
+          help: "cooldown period before auoscaler monitor a new instance (in seconds)"
+    delete:
+      help: delete a cluster
+      type: code
+      parameters:
+        - name: "name"
+          help: "the cluster to delete"
+
 kubernetes:
   help: see or manipulate kubernetes resources
   commands:

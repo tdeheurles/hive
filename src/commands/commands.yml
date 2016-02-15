@@ -8,6 +8,7 @@ docker:
         - name: "parameters"
           help: "the command to run"
           nargs: "..."
+
 gcloud:
   help: interact with the google cloud plateform
   commands:
@@ -131,6 +132,7 @@ kubernetes:
       parameters:
         - name: "namespace"
           help: "the environment where is running the container"
+
 script:
   help: run script with hive parameters
   commands:
@@ -164,3 +166,15 @@ script:
         - name: "parameters"
           help: "the argument for the script"
           nargs: "..."
+
+certificate:
+  help: certificates manager
+  commands:
+    create_ssl:
+      help: generate self-sign key and certificate
+      type: code
+      parameters:
+        - name: "domain"
+          help: ""
+        - name: "path"
+          help: ""

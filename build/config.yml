@@ -1,0 +1,11 @@
+spec:
+  maintainer: thibault deheurles <tdeheurles@gmail.com>
+
+  image:
+    os:   ubuntu:14.04.2
+    hive: tdeheurles/hive
+
+  version:
+    hive:
+      minor: "1"
+      major: "0"

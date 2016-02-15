@@ -7,12 +7,7 @@ if [[ $# != 1 ]];then
 fi
 build=$1
 
-# fail fats
+# fail fast
 set -euo pipefail
 
-. build/config.sh
-
-cd build/hive
-./build.sh ${build}
-
-cd ../..
+./hive -v script hive_run --config build/config.yml //build/hive build.sh build ${build}

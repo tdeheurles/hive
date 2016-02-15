@@ -1,8 +1,10 @@
 # Hive
 
-container to manage all our docker stuff
+container to manage docker stuff
 
-The project try to simplify the container process with docker, kubernetes and gcloud. Maybe I will add AWS and different kind of CLI with it too. 
+The project try to simplify the container process with docker, kubernetes and gcloud. Maybe I will add AWS and different kind of CLI with it too.
+ 
+For now the project is a `prototype`, the api is really not fixed as I want it to be design by utilisation.
 
 ### The problems I try to solve
 
@@ -16,14 +18,23 @@ Kubernetes use manifests, these files are simple but you need to inject variable
 
 ### The keys to the solution
 
-- Our project are made to run containers ... so why not define containers as our dependency, and only containers ^^.
+- Our project are made to run containers ... so why not define containers as our only dependency.
 - If I run my glue in a container, I can use another tool that don't need to be installed everywhere, this tool need to run quickly (quick start) as I want the container to be almost transparent, but the tool inside the container don't need to be portable anymore. Some languages seems to be good choice like python or maybe go. I have chosen python.
 
-### My solution: `Hive`
+### My prototype: `Hive`
 
-Hive is just a simple CLI that propose tools for docker, gcloud, kubernetes and to simplify the glue. The gcloud and kubectl CLI are accessible from inside. But nothing is installed in this container. It just run other containers with the needed tools.
- 
-As an example, if you need to run a `kubectl cli` command. The normal way is to install it on linux or mac (you just can't on windows for now). With `hive`, you write this: `./hive kubernetes cli <your command>` when you would have run `./kubectl <your command>` with the CLI installed locally. I just need to add the `bash hive script` in my project and point to it when I need `gcloud or kubectl CLIs`. But the good points is that you can define gcloud or kubectl commands and and have a good feeling that the tool run without any need to install dependencies for the user.
+Hive is just a simple CLI that proposes tools for docker, gcloud, kubernetes 
+and to simplify the glue. The gcloud and kubectl CLI are accessible from inside. 
+This container comes with a docker client (it will use the host daemon), and python. 
+
+It runs other containers with the needed tools:  
+As an example, if you need to run a `kubectl cli` command. 
+The normal way is to install it on linux or mac (you just can't on windows for now). 
+With `hive`, you write this: `./hive kubernetes cli <your command>` when you would have run 
+`./kubectl <your command>` with the CLI installed locally. 
+I just need to add the `bash hive script` in my project and point to it when 
+I need `gcloud or kubectl CLIs`. 
+But the good points is that you can define gcloud or kubectl commands and and have a good feeling that the tool run without any need to install dependencies for the user.
 
 Understand that `hive` will access your local docker, so it can start container, volume or clean things for you. The idea is not to confront with `docker-compose` or `kubelet`, I just want to list all the useful commands somewhere and to have an easy access to it for all my projects.
 

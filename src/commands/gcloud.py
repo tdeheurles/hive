@@ -1,8 +1,8 @@
 import sys
 
 from docker import docker
-from modele.Command import Command
-from modele.GcloudInstanceGroup import GcloudInstanceGroup
+from model.Command import Command
+from model.GcloudInstanceGroup import GcloudInstanceGroup
 
 
 class gcloud(Command):

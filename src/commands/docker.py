@@ -1,7 +1,7 @@
 import sys
 
-from modele.Command import Command
-from modele.DockerVolume import DockerVolume
+from model.Command import Command
+from model.DockerVolume import DockerVolume
 
 
 class docker(Command):

@@ -1,13 +1,9 @@
-import os
-import re
 import string
 import sys
 import time
 
-import yaml
-
-from modele.Command import Command
-
+from model.Command import Command
+from business.FileGenerator import FileGenerator
 
 class script(Command):
     def __init__(self, subprocess, hive_home, options):
@@ -22,24 +18,20 @@ class script(Command):
         script_name = args["script"]
         parameters = args["parameters"]
 
-        # read config
-        config = None
+        config_path = None
         if "config" in args:
             config_path = self.hive_home + "/" + args["config"]
-            if not os.path.isfile(config_path):
-                sys.exit("No file found at " + config_path)
-            with open(config_path, 'r') as f:
-                config = yaml.load(f.read())["spec"]
 
         # patterns
-        added_files = self.generate_hive_files(config, parameters, path)
+        file_generator = FileGenerator(self.subprocess)
+        added_files = file_generator.generate_hive_files(config_path, parameters, path)
         exception = None
         try:
             self.subprocess.call("cd " + path + " && ./" + script_name, shell=True)
         except OSError as error:
             exception = error
         finally:
-            self.cleanup(added_files, path)
+            file_generator.cleanup(added_files, path)
 
         if "timed" in args:
             self._print_time(start_counter, start_date)
@@ -69,79 +61,6 @@ class script(Command):
 
         if error is not None:
             sys.exit(error)
-
-    def cleanup(self, added_files, path):
-        for new_file in added_files:
-            os.remove(path + "/" + new_file)
-
-    def _cli_parameter(self, file_parameter, parameters):
-        # case of cli parameter
-
-        error = None
-        cli_parameter_position = None
-
-        if len(file_parameter) <= 1:
-            error = "incorrect hive parameter for {0} in file {1}"
-            return cli_parameter_position, error
-        try:
-            cli_parameter_position = parameters.index(file_parameter[1]) + 1
-        except ValueError:
-            error = "incorrect hive cli parameter for {0} in file {1}. No key value given"
-
-        if len(parameters) <= cli_parameter_position:
-            error = "incorrect hive number of parameter for {0} in file {1}"
-            return cli_parameter_position, error
-
-        return cli_parameter_position, error
-
-    # public
-    def generate_hive_files(self, config, parameters, path):
-        added_files = []
-        for pattern_file in [f for f in os.listdir(path) if f[:5] == "hive."]:
-            with open(path + "/" + pattern_file, 'r') as stream:
-                pattern = stream.read()
-
-            matches = re.findall("<%.*?%>", pattern, re.MULTILINE)
-            for match in matches:
-                def configuration_error(message):
-                    self.cleanup(added_files, path)
-                    if message is None:
-                        message = "No configuration match for parameter " + match + " in file " + pattern_file
-                    sys.exit(message)
-
-                file_parameter = match.translate(None, '<% >').split('.')
-                value = config
-                for i in range(len(file_parameter)):
-                    key = file_parameter[i]
-                    if key == "args":
-                        cli_parameter_position, error = self._cli_parameter(file_parameter, parameters)
-                        if error is not None:
-                            self.cleanup(added_files, path)
-                            sys.exit(error.format(match, pattern_file))
-                        value = parameters[cli_parameter_position]
-                        break
-                    else:
-                        if value is None:
-                            configuration_error("Please, rerun with the config parameter")
-                        try:
-                            if key not in value.keys():
-                                configuration_error(None)
-                            value = value[key]
-                        except AttributeError:
-                            configuration_error(None)
-                try:
-                    pattern = pattern.replace(match, str(value))
-                except TypeError as error:
-                    print error
-                    configuration_error(None)
-
-            new_name = pattern_file[5:]
-            added_files.append(new_name)
-            with open(path + "/" + new_name, 'w') as stream:
-                stream.write(pattern)
-
-            self.subprocess.call(["chmod", "755", path + "/" + new_name])
-        return added_files
 
     # helpers
     def _print_time(self, start_counter, start_date):

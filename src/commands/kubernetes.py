@@ -6,11 +6,11 @@ import time
 import yaml
 
 from gcloud import gcloud
-from script import script
-from modele.Command import Command
-from modele.KubernetesNamespace import KubernetesNamespace
-from modele.KubernetesPod import KubernetesPod
-from modele.ManifestFactory import ManifestFactory
+from model.Command import Command
+from model.KubernetesNamespace import KubernetesNamespace
+from model.KubernetesPod import KubernetesPod
+from model.ManifestFactory import ManifestFactory
+from business.FileGenerator import FileGenerator
 
 
 class kubernetes(Command):
@@ -118,7 +118,7 @@ class kubernetes(Command):
 
         self._control_deployment_strategy(args, deployment, environment)
 
-        hive_file_transpiler = script(self.subprocess, self.hive_home, self.options)
+        hive_file_transpiler = FileGenerator(self.subprocess)
 
         for kind in ["services", "replicationController"]:
             for resource in deployment[kind]:

@@ -1,5 +1,5 @@
 import sys
-from modele.Command import Command
+from model.Command import Command
 
 
 class certificate(Command):

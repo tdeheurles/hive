@@ -175,6 +175,6 @@ certificate:
       type: code
       parameters:
         - name: "domain"
-          help: ""
+          help: "the domain name of your certificate"
         - name: "path"
-          help: ""
+          help: "the path to the folder where you want to ouput the certificates"

@@ -102,7 +102,7 @@ class kubernetes(Command):
 
             if result == 0:
                 self._execute_command(
-                    ["exec", "-ti", "--namespace=" + namespace, pod.name, "bash"]
+                        ["exec", "-ti", "--namespace=" + namespace, pod.name, "bash"]
                 )
             else:
                 sys.exit("failed to connect to a testtool pod")
@@ -114,20 +114,21 @@ class kubernetes(Command):
         build = args["build"]
         environment = args["environment"]
 
-        deployment, templates_folder, configuration = self._read_files(args)
+        deployment, templates_folder, configuration_file = self._read_files(args)
 
         self._control_deployment_strategy(args, deployment, environment)
 
         hive_file_transpiler = FileGenerator(self.subprocess)
 
-        for kind in ["services", "replicationController"]:
-            for resource in deployment[kind]:
-                path = self.hive_home + "/" + templates_folder + "/" + resource["name"]
-                self._deploy_create_resource(
-                    kind, path, resource,
-                    hive_file_transpiler,
-                    configuration, build, environment
-                )
+        for kind in ["service", "secret", "replicationController"]:
+            if kind in deployment:
+                for resource in deployment[kind]:
+                    path = self.hive_home + "/" + templates_folder + "/" + resource["name"]
+                    self._deploy_create_resource(
+                            kind, path, resource,
+                            hive_file_transpiler,
+                            configuration_file, build, environment
+                    )
 
     # helpers
     def _get_pods_by_name(self, name, namespace):
@@ -138,7 +139,7 @@ class kubernetes(Command):
 
     def _get_pods(self, namespace):
         return self.subprocess.check_output(
-            self._cli + ["get", "pods", "--namespace=" + namespace]
+                self._cli + ["get", "pods", "--namespace=" + namespace]
         )
 
     def _start_testtool(self, namespace):
@@ -148,7 +149,7 @@ class kubernetes(Command):
         testtool_pod["metadata"]["namespace"] = namespace
 
         self._create_resource(
-            testtool_pod, '/hive_share/kubernetes/pods', '/' + namespace + '-testtool.json'
+                testtool_pod, '/hive_share/kubernetes/pods', '/' + namespace + '-testtool.json'
         )
 
     def _create_resource(self, output, path, file_name):
@@ -184,52 +185,51 @@ class kubernetes(Command):
             sys.exit(1)
 
     def _read_files(self, args):
-        with open(self.hive_home + args["deployment_file"], 'r') as f:
+        with open(self.hive_home + "/" + args["deployment_file"], 'r') as f:
             deployment = yaml.load(f.read())["spec"]
-            configuration_file = deployment["configuration"]
+            configuration_file = self.hive_home + "/" + deployment["configuration"]
             templates_folder = deployment["templates"]
 
-        with open(self.hive_home + "/" + configuration_file, 'r') as f:
-            configuration = yaml.load(f.read())["spec"]
+        return deployment, templates_folder, configuration_file
 
-        return deployment, templates_folder, configuration
-
-    def _deploy_create_resource(self, kind, path, resource, hive_file_transpiler, configuration, build, environment):
+    def _deploy_create_resource(self, kind, path, resource, hive_file_transpiler,
+                                configuration_file, build, environment):
         hive_file_transpiler.generate_hive_files(
-            configuration,
-            ["build", build],
-            path
+                configuration_file,
+                ["build", build],
+                path
         )
 
-        kind_short_name = "svc" if kind == "services" else "rc"
-
-        with open(path + "/" + kind_short_name + ".yml", "r") as f:
-            template = yaml.load(f.read())
+        with open(path + "/" + kind + ".yml", "r") as stream:
+            template = yaml.load(stream.read())
 
         template["metadata"]["namespace"] = environment
 
         # add public=true for services to expose
-        if "services" == kind and "public" in resource:
+        if kind == "services" and "public" in resource and resource["public"] == "true":
             if "labels" not in template["metadata"]:
                 template["metadata"]["labels"] = {}
             template["metadata"]["labels"]["public"] = "true"
 
         self._create_resource(
-            json.dumps(template),
-            self.resources_path,
-            resource["name"] + kind_short_name
+                json.dumps(template),
+                self.resources_path,
+                resource["name"] + kind
         )
-        hive_file_transpiler.cleanup([kind_short_name + ".yml"], path)
+        hive_file_transpiler.cleanup([kind + ".yml"], path)
 
     def _control_deployment_strategy(self, args, deployment, environment):
-        if "deploymentStrategy" in deployment and deployment["deploymentStrategy"] == "Recreate":
+        if "deploymentStrategy" in deployment \
+                and deployment["deploymentStrategy"] == "Recreate":
 
             namespaces = KubernetesNamespace.namespaces_from_api_call(
-                self.subprocess.check_output(self._cli + ["get", "ns"])
+                    self.subprocess.check_output(self._cli + ["get", "ns"])
             )
             for namespace in namespaces:
                 if namespace.name == environment:
                     self.delete({"name": environment})
+                    print "Giving time for namespace to be completely removed ..."
+                    time.sleep(5)
 
             create_environment_args = {
                 "name": environment,

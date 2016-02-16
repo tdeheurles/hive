@@ -2,7 +2,8 @@ import subprocess
 import yaml
 import importlib
 import os
-from modele.Menu import Menu
+
+from mainLogic.Menu import Menu
 
 hive_home = os.environ["HIVE_HOME"]
 options = []

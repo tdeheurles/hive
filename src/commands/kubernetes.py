@@ -1,3 +1,4 @@
+import pprint
 import json
 import os
 import string
@@ -11,6 +12,7 @@ from model.KubernetesNamespace import KubernetesNamespace
 from model.KubernetesPod import KubernetesPod
 from model.ManifestFactory import ManifestFactory
 from business.FileGenerator import FileGenerator
+from model.HiveConfigFactory import HiveConfigFactory
 
 
 class kubernetes(Command):
@@ -24,17 +26,17 @@ class kubernetes(Command):
     def status(self, args):
         self._verbose("status")
         namespace = "--namespace=" + args["namespace"]
-        print "\n\033[92mSERVICES\n\033[0m"
+        print "\n\033[92m==================== SERVICES ====================\n\033[0m"
         self.subprocess.check_call(self._cli + ["get", "services", namespace])
-        print "\n\033[92mRC\n\033[0m"
+        print "\n\033[92m======================= RC =======================\n\033[0m"
         self.subprocess.check_call(self._cli + ["get", "rc", namespace])
-        print "\n\033[92mPODS\n\033[0m"
+        print "\n\033[92m====================== PODS ======================\n\033[0m"
         self.subprocess.check_call(self._cli + ["get", "pods", namespace])
-        print "\n\033[92mENDPOINTS\n\033[0m"
-        self.subprocess.check_call(self._cli + ["get", "endpoints", namespace])
-        print "\n\033[92mINGRESS\n\033[0m"
-        self.subprocess.check_call(self._cli + ["get", "ingress", namespace])
-        print "\n\033[92mNODES\n\033[0m"
+        # print "\n\033[92mENDPOINTS ===================\n\033[0m"
+        # self.subprocess.check_call(self._cli + ["get", "endpoints", namespace])
+        # print "\n\033[92mINGRESS =====================\n\033[0m"
+        # self.subprocess.check_call(self._cli + ["get", "ingress", namespace])
+        print "\n\033[92m====================== NODES =====================\n\033[0m"
         self.subprocess.check_call(self._cli + ["get", "nodes", namespace])
 
     def namespaces(self, args):
@@ -111,24 +113,92 @@ class kubernetes(Command):
 
     def deploy(self, args):
         self._verbose("deploy")
+
+        hive_config = HiveConfigFactory.create(
+                self.hive_home + "/" + args["hive_file"]
+        )
+
         build = args["build"]
         environment = args["environment"]
+        kubernetes_configuration = hive_config.kubernetes
+        deployment_strategy = self._control_deployment_strategy(args, kubernetes_configuration, environment)
 
-        deployment, templates_folder, configuration_file = self._read_files(args)
+        file_transpiler = FileGenerator(self.subprocess)
 
-        self._control_deployment_strategy(args, deployment, environment)
+        if deployment_strategy == "Recreate":
+            # we delete everything and recreate
+            kubernetes_sub_projects = hive_config.kubernetes_sub_projects()
+            for kind in ["service", "secret", "replicationController"]:
+                first = True
+                for sub_project in kubernetes_sub_projects:
+                    if kind in sub_project.kubernetes:
+                        if first:
+                            first = False
+                            print "\n=================="
 
-        hive_file_transpiler = FileGenerator(self.subprocess)
+                        self._deploy_create_resource(
+                                kind, sub_project,
+                                file_transpiler,
+                                hive_config, build, environment
+                        )
 
-        for kind in ["service", "secret", "replicationController"]:
-            if kind in deployment:
-                for resource in deployment[kind]:
-                    path = self.hive_home + "/" + templates_folder + "/" + resource["name"]
-                    self._deploy_create_resource(
-                            kind, path, resource,
-                            hive_file_transpiler,
-                            configuration_file, build, environment
-                    )
+        # if deployment_strategy == "RollingUpdate":
+        #     # we rolling update replication controller
+        #     if "replicationController" in deployment:
+        #         for rc in [rcs["name"] for rcs in deployment["replicationController"]]:
+        #             self.rolling_update({
+        #                 "service": rc,
+        #                 "build": build,
+        #                 "environment": environment,
+        #                 "deployment_file": deployment_file
+        #             })
+
+    def rolling_update(self, args):
+        self._verbose("rolling_update")
+
+        service = args["service"]
+        build = args["build"]
+        environment = args["environment"]
+        deployment_file = args["deployment_file"]
+        deployment, templates_folder, configuration_file = self._read_files(deployment_file)
+        path_to_resource = self.hive_home + "/" + templates_folder + "/" + service
+
+        file_transpiler = FileGenerator(self.subprocess)
+        added_files = file_transpiler.generate_hive_files(
+                configuration_file,
+                ["build", build],
+                path_to_resource
+        )
+
+        with open(path_to_resource + "/" + added_files[0], "r") as stream:
+            template = yaml.load(stream.read())
+
+        template["metadata"]["namespace"] = environment
+
+        if not os.path.exists(self.resources_path):
+            os.makedirs(self.resources_path)
+
+        resource_to_update = self.resources_path + "/" + service
+        with open(resource_to_update, 'w') as f:
+            f.write(json.dumps(template))
+
+        error = None
+        try:
+            self.subprocess.call(
+                    self._cli + [
+                        "rolling-update", service,
+                        "--namespace=" + environment,
+                        "-f", resource_to_update
+                    ]
+            )
+
+        except OSError as osError:
+            error = osError
+
+        file_transpiler.cleanup(added_files, path_to_resource)
+
+        if error is not None:
+            sys.exit(error)
 
     # helpers
     def _get_pods_by_name(self, name, namespace):
@@ -156,10 +226,10 @@ class kubernetes(Command):
         if not os.path.exists(path):
             os.makedirs(path)
 
-        with open(path + file_name, 'w') as f:
+        with open(path + "/" + file_name, 'w') as f:
             f.write(output)
 
-        self._execute_command(["create", "-f", path + file_name])
+        self._execute_command(["create", "-f", path + "/" + file_name])
 
     def _wait_for_pod_to_run(self, origin_pod, namespace):
         attempt = 0
@@ -180,53 +250,50 @@ class kubernetes(Command):
 
     def _execute_command(self, command):
         try:
-            self.subprocess.check_call(self._cli + command)
+            self.subprocess.call(["cd " + self.hive_home + " && echo ${PWD} && ls -la"], shell=True)
+            self.subprocess.check_call(
+                    ["cd " + self.hive_home +
+                     " && " + " ".join(self._cli) + " " + " ".join(command)],
+                    shell=True
+            )
         except self.subprocess.CalledProcessError as error:
-            sys.exit(1)
+            sys.exit(error)
 
-    def _read_files(self, args):
-        with open(self.hive_home + "/" + args["deployment_file"], 'r') as f:
-            deployment = yaml.load(f.read())["spec"]
-            configuration_file = self.hive_home + "/" + deployment["configuration"]
-            templates_folder = deployment["templates"]
+    def _deploy_create_resource(self, kind, sub_project, hive_file_transpiler,
+                                hive_config, build, environment):
 
-        return deployment, templates_folder, configuration_file
-
-    def _deploy_create_resource(self, kind, path, resource, hive_file_transpiler,
-                                configuration_file, build, environment):
         hive_file_transpiler.generate_hive_files(
-                configuration_file,
-                ["build", build],
-                path
+                hive_config,
+                ["id", build],
+                sub_project.path
         )
 
-        with open(path + "/" + kind + ".yml", "r") as stream:
+        kind_short_name = self._kind_shot_name(kind)
+
+        with open(sub_project.path + "/" + kind_short_name + ".yml", "r") as stream:
             template = yaml.load(stream.read())
 
         template["metadata"]["namespace"] = environment
 
-        # add public=true for services to expose
-        if kind == "services" and "public" in resource and resource["public"] == "true":
-            if "labels" not in template["metadata"]:
-                template["metadata"]["labels"] = {}
-            template["metadata"]["labels"]["public"] = "true"
-
         self._create_resource(
                 json.dumps(template),
                 self.resources_path,
-                resource["name"] + kind
+                kind_short_name + ".yml"
         )
-        hive_file_transpiler.cleanup([kind + ".yml"], path)
+        hive_file_transpiler.cleanup([kind_short_name + ".yml"], sub_project.path)
 
     def _control_deployment_strategy(self, args, deployment, environment):
-        if "deploymentStrategy" in deployment \
-                and deployment["deploymentStrategy"] == "Recreate":
+        if "deploymentStrategy" not in deployment:
+            sys.exit("hive file must comport a spec.kubernetes.deploymentStrategy field")
+        deployment_strategy = deployment["deploymentStrategy"]
 
+        if deployment_strategy == "Recreate":
             namespaces = KubernetesNamespace.namespaces_from_api_call(
                     self.subprocess.check_output(self._cli + ["get", "ns"])
             )
             for namespace in namespaces:
                 if namespace.name == environment:
+                    print "\n=================="
                     self.delete({"name": environment})
                     print "Giving time for namespace to be completely removed ..."
                     time.sleep(5)
@@ -240,3 +307,13 @@ class kubernetes(Command):
                 create_environment_args["subproject"] = args["subproject"]
 
             self.create_environment(create_environment_args)
+
+        return deployment_strategy
+
+    def _kind_shot_name(self, kind):
+        if kind == "replicationController":
+            return "rc"
+        if kind == "service":
+            return "svc"
+        if kind == "secret":
+            return "sct"

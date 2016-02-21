@@ -10,7 +10,7 @@ build=$1
 # fail fast
 set -euo pipefail
 
-./hive -v script hive_run   \
+./hive script hive_run      \
   --config build/config.yml \
   //build/hive build.sh     \
   build ${build}

@@ -78,8 +78,8 @@ kubernetes:
       help: deploy an application
       type: code
       parameters:
-        - name: "deployment_file"
-          help: "the path to your deployment manifest"
+        - name: "hive_file"
+          help: "the path to your hive file directory"
         - name: "environment"
           help: "the name of the environment where you want to deploy your application"
         - name: "build"
@@ -131,8 +131,19 @@ kubernetes:
       type: code
       parameters:
         - name: "namespace"
-          help: "the environment where is running the container"
-
+          help: "the environment where to start the testtool"
+    rolling_update:
+      help: rolling update of a replication controller
+      type: code
+      parameters:
+        - name: "deployment_file"
+          help: "the path to your deployment file"
+        - name: "environment"
+          help: "the environment you want to use"
+        - name: "service"
+          help: "the name of your replication controller"
+        - name: "build"
+          help: "the new build you want"
 script:
   help: run script with hive parameters
   commands:
@@ -178,3 +189,47 @@ certificate:
           help: "the domain name of your certificate"
         - name: "path"
           help: "the path to the folder where you want to ouput the certificates"
+
+do:
+  help: template commands
+  commands:
+    build:
+      help: build project or subproject
+      type: code
+      parameters:
+        - name: hive_file
+          help: the path from hive script to the hive file folder
+        - name: subprojects
+          help: the subproject you want to build. For multiple subprojects, separate them by a comma. You can also use _all_ to build all subprojects.
+        - name: parameters
+          help: the parameters for the build (do not give parameters to have instructions)
+          nargs: "..."
+    run:
+      help: run locally a project or subproject
+      type: code
+      parameters:
+        - name: hive_file
+          help: the path from hive script to the hive file folder
+        - name: subprojects
+          help: the subproject you want to run. For multiple subprojects, separate them by a comma. You can also use _all_ to run all subprojects.
+        - name: parameters
+          help: the parameters to run the subprojects (do not give parameters to have instructions)
+          nargs: "..."
+    kill:
+      help: run locally a project or subproject
+      type: code
+      parameters:
+        - name: hive_file
+          help: the path from hive script to the hive file folder
+        - name: subprojects
+          help: the subproject you want to kill. For multiple subprojects, separate them by a comma. You can also use _all_ to kill all subprojects.
+        - name: parameters
+          help: the parameters to run the subprojects (do not give parameters to have instructions)
+          nargs: "..."
+    test:
+      help: ...
+      type: code
+      parameters:
+        - name: parameters
+          help: the parameters to run the subprojects (do not give parameters to have instructions)
+          nargs: "..."

@@ -37,3 +37,24 @@ class Command:
 
         if self.verboseMode:
             printout("hive-python: " + message, BLUE)
+
+    def _execute_shell_command(self, command):
+        exception = None
+        try:
+            self.subprocess.check_call(
+                command,
+                shell=True
+            )
+        except (OSError, self.subprocess.CalledProcessError) as error:
+            exception = error
+
+        return exception
+
+    def _execute_command(self, command):
+        exception = None
+        try:
+            self.subprocess.call(command)
+        except OSError as error:
+            exception = error
+
+        return exception

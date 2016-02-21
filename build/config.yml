@@ -7,5 +7,5 @@ spec:
 
   version:
     hive:
-      minor: "1"
+      minor: "2"
       major: "0"

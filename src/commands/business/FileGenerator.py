@@ -9,9 +9,9 @@ class FileGenerator:
         self.subprocess = subprocess
 
     # public
-    def generate_hive_files(self, config_path, parameters, path):
+    def generate_hive_files(self, hive_config, cli_parameters, file_path):
         def configuration_error(message):
-            self.cleanup(added_files, path)
+            self.cleanup(added_files, file_path)
             if message is None:
                 message = "No configuration match for parameter " + match + " in file " + pattern_file
             sys.exit(message)
@@ -19,17 +19,19 @@ class FileGenerator:
         def control_key_in_value(value, key):
             try:
                 if key not in value.keys():
-                    configuration_error("key: " + key + " not found in configuration, please, rerun with the config parameter")
+                    configuration_error(
+                        "key: " + key + " not found in configuration, please, rerun with the config parameter")
                 value = value[key]
             except AttributeError:
                 configuration_error(None)
             return value
 
-        config = self._open_config(config_path)
+        root_folder = hive_config.hive_config_path
+        config = hive_config.configuration
 
         added_files = []
-        for pattern_file in [f for f in os.listdir(path) if f[:5] == "hive."]:
-            with open(path + "/" + pattern_file, 'r') as stream:
+        for pattern_file in [f for f in os.listdir(file_path) if f[:5] == "hive."]:
+            with open(file_path + "/" + pattern_file, 'r') as stream:
                 pattern = stream.read()
 
             matches = re.findall("<%.*?%>", pattern, re.MULTILINE)
@@ -43,17 +45,17 @@ class FileGenerator:
 
                     # CLI parameters
                     if key == "args":
-                        cli_parameter_position, error = self._cli_parameter(file_parameter, parameters)
+                        cli_parameter_position, error = self._cli_parameter(file_parameter, cli_parameters)
                         if error is not None:
-                            self.cleanup(added_files, path)
+                            self.cleanup(added_files, file_path)
                             sys.exit(error.format(match, pattern_file))
-                        value = parameters[cli_parameter_position]
+                        value = cli_parameters[cli_parameter_position]
                         break
 
                     # base64 file transpilation
                     if key == "__b64__":
                         control_key_in_value(value, key)
-                        value = self._extract_base64(value[key], config_path)
+                        value = self._extract_base64(root_folder + "/" + value[key])
                         break
 
                     # No configuration for parameter
@@ -74,20 +76,11 @@ class FileGenerator:
 
             new_name = pattern_file[5:]
             added_files.append(new_name)
-            with open(path + "/" + new_name, 'w') as stream:
+            with open(file_path + "/" + new_name, 'w') as stream:
                 stream.write(pattern)
 
-            self.subprocess.call(["chmod", "755", path + "/" + new_name])
+            self.subprocess.call(["chmod", "755", file_path + "/" + new_name])
         return added_files
-
-    def _open_config(self, config_path):
-        config = None
-        if config_path is not None:
-            if not os.path.isfile(config_path):
-                sys.exit("No file found at " + config_path)
-            with open(config_path, 'r') as f:
-                config = yaml.load(f.read())["spec"]
-        return config
 
     def cleanup(self, added_files, path):
         for new_file in added_files:
@@ -114,13 +107,10 @@ class FileGenerator:
 
         return cli_parameter_position, error
 
-    def _extract_base64(self, file_path, config_path):
-
-        content_path = os.path.dirname(config_path) + "/" + file_path
-
+    def _extract_base64(self, content_path):
         try:
             base64_content = self.subprocess.check_output(
-                ["base64", "-i", "-w", "0", content_path]
+                    ["base64", "-i", "-w", "0", content_path]
             )
         except OSError as error:
             sys.exit(error)

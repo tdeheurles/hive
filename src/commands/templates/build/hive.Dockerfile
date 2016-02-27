@@ -1,4 +1,4 @@
-FROM ubuntu:14.04.2
+FROM <% __SERVICE_NAME__.base %>
 MAINTAINER <% maintainer %>
 
 ENTRYPOINT ["echo", "hi"]

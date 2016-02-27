@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "__SERVICE_NAME__"
+  labels:
+    name: "__SERVICE_NAME__"
+    major: "<% __SERVICE_NAME__.major %>"
+spec:
+  selector:
+    name: "__SERVICE_NAME__"
+    major: "<% __SERVICE_NAME__.major %>"
+  ports:
+  - port: 80
+    targetPort: 80
+    name: "http"

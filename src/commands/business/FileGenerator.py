@@ -16,11 +16,11 @@ class FileGenerator:
                 message = "No configuration match for parameter " + match + " in file " + pattern_file
             sys.exit(message)
 
-        def control_key_in_value(value, key):
+        def control_key_in_value(value, key, match):
             try:
                 if key not in value.keys():
                     configuration_error(
-                        "key: " + key + " not found in configuration, please, rerun with the config parameter")
+                        "key: " + match + " not found in configuration, please, rerun with the config parameter")
                 value = value[key]
             except AttributeError:
                 configuration_error(None)
@@ -54,7 +54,7 @@ class FileGenerator:
 
                     # base64 file transpilation
                     if key == "__b64__":
-                        control_key_in_value(value, key)
+                        control_key_in_value(value, key, match)
                         value = self._extract_base64(root_folder + "/" + value[key])
                         break
 
@@ -66,7 +66,7 @@ class FileGenerator:
                                 ", add a configuration file with --config")
 
                     # continue to read yaml tree
-                    value = control_key_in_value(value, key)
+                    value = control_key_in_value(value, key, match)
 
                 try:
                     pattern = pattern.replace(match, str(value))

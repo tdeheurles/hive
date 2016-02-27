@@ -1,4 +1,7 @@
 #!/bin/bash
+set -euo pipefail
 
-docker push <% image.__SERVICE_NAME__ %>
-docker push <% image.__SERVICE_NAME__ %>.<% args.id %>
+image="<% __SERVICE_NAME__.image %>"
+
+docker push ${image}
+docker push ${image}.<% args.id %>

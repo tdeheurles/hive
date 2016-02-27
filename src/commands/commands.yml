@@ -236,20 +236,42 @@ do:
 template:
   help: generate folder and files
   commands:
-    create:
-      help: generate folder and files
+    docker:
+      help: create script to build, run and kill your containers locally
       type: code
       parameters:
-        - name:   name
-          help:   the name of the project
         - name:   hive_file
           help:   the path to your folder where to create the subproject (from hive script)
+        - name:   name
+          help:   the name of the project
         - name:   --build
-          help:   add this option to create the build folder
+          help:   add this option to create the build action
           action: "store_const"
         - name:   --local
-          help:   add this option to create the run and kill folders
+          help:   add this option to create the run and kill actions
           action: "store_const"
-        - name:   --kubernetes
-          help:   add this option to create the kubernetes deployment folder
+    kubernetes:
+      help: generate kubernetes manifests
+      type: code
+      parameters:
+        - name:   hive_file
+          help:   the path to your folder where to create the subproject (from hive script)
+        - name:   name
+          help:   the name of the project
+        - name:   --rc
+          help:   add this option to create the replication controller manifest
           action: "store_const"
+        - name:   --svc
+          help:   add this option to create the service manifest
+          action: "store_const"
+        - name:   --sct
+          help:   add this option to create the secret manifest
+          action: "store_const"
+    init:
+      help: initiate a new project
+      type: code
+      parameters:
+        - name: project
+          help: the name of your project
+        - name: --maintainer
+          help: the name/address of the maintainer

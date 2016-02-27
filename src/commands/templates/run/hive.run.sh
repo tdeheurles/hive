@@ -1,6 +1,9 @@
 #!/bin/bash
+set -euo pipefail
 
-docker kill <% image.__SERVICE_NAME__ %> 2&> /dev/null || true
+image="<% __SERVICE_NAME__.image %>"
+
+docker kill ${image} 2&> /dev/null || true
 docker run                \
-  -t <% image.__SERVICE_NAME__ %> \
-  -d <% image.__SERVICE_NAME__ %>.<% args.id %>
+  -t <% ${image} %> \
+  -d <% ${image} %>.<% args.id %>

@@ -1,3 +1,4 @@
 #!/bin/bash
+set -euo pipefail
 
-docker kill <% image.__SERVICE_NAME__ %>
+docker kill <% __SERVICE_NAME__.image %>

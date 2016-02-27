@@ -1,4 +1,7 @@
 #!/bin/bash
+set -euo pipefail
 
-docker build -t <% image.__SERVICE_NAME__ %> .
-docker tag <% image.__SERVICE_NAME__ %>.<% args.id %>
+image="<% __SERVICE_NAME__.image %>"
+
+docker build -t ${image} .
+docker tag ${image} ${image}.<% args.id %>

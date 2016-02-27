@@ -3,7 +3,7 @@ kind: HiveDeployment
 spec:
   project:            simple-nginx
   deploymentStrategy: Recreate
-  configuration:      config.yml
+  configuration:      hive.yml
   templates:          templates
 
   services:

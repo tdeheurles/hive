@@ -233,3 +233,23 @@ do:
         - name: parameters
           help: the parameters to run the subprojects (do not give parameters to have instructions)
           nargs: "..."
+template:
+  help: generate folder and files
+  commands:
+    create:
+      help: generate folder and files
+      type: code
+      parameters:
+        - name:   name
+          help:   the name of the project
+        - name:   hive_file
+          help:   the path to your folder where to create the subproject (from hive script)
+        - name:   --build
+          help:   add this option to create the build folder
+          action: "store_const"
+        - name:   --local
+          help:   add this option to create the run and kill folders
+          action: "store_const"
+        - name:   --kubernetes
+          help:   add this option to create the kubernetes deployment folder
+          action: "store_const"

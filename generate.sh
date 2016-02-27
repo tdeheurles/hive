@@ -2,15 +2,12 @@
 
 if [[ $# != 1 ]];then
   echo "usage:"
-  echo "  $0 BUILD_ID"
+  echo "  $0 ID"
   exit 1
 fi
-build=$1
+id=$1
 
 # fail fast
 set -euo pipefail
 
-./hive script hive_run      \
-  --config build/config.yml \
-  //build/hive build.sh     \
-  build ${build}
+./hive do build devops hive id ${id}

@@ -275,3 +275,5 @@ template:
           help: the name of your project
         - name: --maintainer
           help: the name/address of the maintainer
+        - name: --folder
+          help: where to genereate the hive.yml and the subproject folder

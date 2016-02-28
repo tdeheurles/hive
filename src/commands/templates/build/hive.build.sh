@@ -1,7 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-image="<% __SERVICE_NAME__.image %>"
+id="<% args.id %>"
+image="<% __SERVICE_NAME__.image %>:<% __SERVICE_NAME__.major %>.<% __SERVICE_NAME__.minor %>"
 
 docker build -t ${image} .
-docker tag ${image} ${image}.<% args.id %>
+docker tag ${image} ${image}.${id}

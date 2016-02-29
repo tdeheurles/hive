@@ -1,28 +1,28 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: "__SERVICE_NAME__-<% __SERVICE_NAME__.major %>-<% __SERVICE_NAME__.minor %>-<% args.id %>"
+  name: "<% __SERVICE_NAME__.name %>-<% __SERVICE_NAME__.major %>-<% __SERVICE_NAME__.minor %>-<% args.id %>"
   labels:
-    name: "__SERVICE_NAME__"
+    name: "<% __SERVICE_NAME__.name %>"
     major: "<% __SERVICE_NAME__.major %>"
     minor: "<% __SERVICE_NAME__.minor %>"
     build: "<% args.id %>"
 spec:
   replicas: 1
   selector:
-    name: "__SERVICE_NAME__"
+    name: "<% __SERVICE_NAME__.name %>"
     major: "<% __SERVICE_NAME__.major %>"
     minor: "<% __SERVICE_NAME__.minor %>"
     build: "<% args.id %>"
   template:
     metadata:
       labels:
-        name: "__SERVICE_NAME__"
+        name: "<% __SERVICE_NAME__.name %>"
         major: "<% __SERVICE_NAME__.major %>"
         minor: "<% __SERVICE_NAME__.minor %>"
         build: "<% args.id %>"
     spec:
       containers:
-      - name: "__SERVICE_NAME__"
+      - name: "<% __SERVICE_NAME__.name %>"
         image: "<% __SERVICE_NAME__.image %>:<% __SERVICE_NAME__.major %>.<% __SERVICE_NAME__.minor %>.<% args.id %>"
         imagePullPolicy: Always

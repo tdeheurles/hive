@@ -62,6 +62,25 @@ class do(Command):
                 "kill"
         )
 
+    def push (self, args):
+        hive_config = HiveConfigFactory.create(
+                self.hive_home + "/" + args["hive_file"]
+        )
+
+        sub_projects = self._find_sub_projects(
+                args["subprojects"],
+                hive_config,
+                "build"
+        )
+        self._execute_templated_command(
+                "./push.sh",
+                args["parameters"],
+                FileGenerator(self.subprocess),
+                hive_config,
+                sub_projects,
+                "build"
+        )
+
     # helpers
     def _find_sub_projects(self, asked_string, hive_config, action):
 

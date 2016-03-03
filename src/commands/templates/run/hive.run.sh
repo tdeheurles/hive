@@ -1,9 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
-image="<% __SERVICE_NAME__.image %>"
+id="<% cli.id %>"
+image="<% __SERVICE_NAME__.image %>:<% __SERVICE_NAME__.major %>.<% __SERVICE_NAME__.minor %>"
+container="<% __SERVICE_NAME__.name %>"
 
-docker kill ${image} 2&> /dev/null || true
-docker run                \
-  -t <% ${image} %> \
-  -d <% ${image} %>.<% args.id %>
+docker kill ${container} 2&> /dev/null || true
+docker run -d         \
+  --name ${container} \
+  ${image}.${id}

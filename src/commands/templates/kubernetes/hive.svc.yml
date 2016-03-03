@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: "__SERVICE_NAME__"
+  name: "<% __SERVICE_NAME__.name %>"
   labels:
-    name: "__SERVICE_NAME__"
+    name: "<% __SERVICE_NAME__.name %>"
     major: "<% __SERVICE_NAME__.major %>"
 spec:
   selector:
-    name: "__SERVICE_NAME__"
+    name: "<% __SERVICE_NAME__.name %>"
     major: "<% __SERVICE_NAME__.major %>"
   ports:
   - port: 80

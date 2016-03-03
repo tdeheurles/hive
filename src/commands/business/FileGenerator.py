@@ -44,7 +44,7 @@ class FileGenerator:
                     key = file_parameter[i]
 
                     # CLI parameters
-                    if key == "args":
+                    if key == "cli":
                         cli_parameter_position, error = self._cli_parameter(file_parameter, cli_parameters)
                         if error is not None:
                             self.cleanup(added_files, file_path)

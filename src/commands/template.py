@@ -44,7 +44,10 @@ class template(Command):
     def init(self, args):
 
         project = args["project"]
-        os.makedirs(self.hive_home + "/" + project)
+        project_folder = self.hive_home + "/" + project if "folder" not in args \
+                         else self.hive_home + "/" + args["folder"] + "/" + project
+
+        os.makedirs(project_folder)
 
         with open("commands/templates/hive.yml", "r") as stream:
             content = stream.read()
@@ -55,7 +58,7 @@ class template(Command):
         else:
             content = content.replace("__MAINTAINER__", "not define")
 
-        with open(self.hive_home + "/" + project + "/hive.yml", "w") as stream:
+        with open(project_folder + "/hive.yml", "w") as stream:
             stream.write(content)
 
     def _generate_from_template_file(self, service_name, action, sub_project_folder, template_file):

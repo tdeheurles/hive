@@ -226,6 +226,17 @@ do:
         - name: parameters
           help: the parameters to run the subprojects (do not give parameters to have instructions)
           nargs: "..."
+    push:
+      help: push a subproject containers
+      type: code
+      parameters:
+        - name: hive_file
+          help: the path from hive script to the hive file folder
+        - name: subprojects
+          help: the subproject you want to kill. For multiple subprojects, separate them by a comma. You can also use _all_ to kill all subprojects.
+        - name: parameters
+          help: the parameters to run the subprojects (do not give parameters to have instructions)
+          nargs: "..."
     test:
       help: ...
       type: code
@@ -275,3 +286,5 @@ template:
           help: the name of your project
         - name: --maintainer
           help: the name/address of the maintainer
+        - name: --folder
+          help: where to genereate the hive.yml and the subproject folder

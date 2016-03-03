@@ -1,25 +1,32 @@
 #!/bin/bash
 # can be run in host or container
 
-hive_container="tdeheurles/hive:0.2.0"
+VERSION="0.2.0"
+hive_container="tdeheurles/hive:${VERSION}"
 
 # USAGE
 # =========
 usage() {
-    echo "${0} [-v] [-c] [-w] ..."
-    echo "--no-tty: remove tty for the hive instance"
-    echo "-v:       verbose"
-    echo "-c:       stop running containers, remove all containers and image without tag"
-    echo "-w:       clean hive_working_directory volume. That is needed to clean project for hive started from inside a container."
+    echo "Pre Hive container options:"
+    echo "==========================="
+    echo "usage: ${0} [-t] [-v] [-c] [-w] [-h] [Hive Container Options and Parameters]"
+    echo "  -t, --no-tty             remove tty for the hive instance"
+    echo "  -v, --verbose            verbose"
+    echo "  -c, --clean              stop running containers, remove all containers and image without tag"
+    echo "  -w, --rm-hive-directory  clean hive_working_directory volume. That is needed to clean project for hive started from inside a container."
+    echo "  -h, --help               show this help message and exit"
+    echo "  --version                print the script version and exit"
+    echo " "
 }
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --no-tty) NOTTY=YES;                                 shift 1;;
-    -v)       VERBOSE=YES;                               shift 1;;
-    -c)       CLEAN=YES;                                 shift 1;;
-    -w)       REMOVE_WORKING_DIRECTORY=YES;              shift 1;;
-    -wv|vw)   REMOVE_WORKING_DIRECTORY=YES; VERBOSE=YES; shift 1;;
+    -t|--no-tty)            NOTTY=YES;                                 shift 1;;
+    -v|--verbose)           VERBOSE=YES;                               shift 1;;
+    -c|--clean)             CLEAN=YES;                                 shift 1;;
+    -w|--rm-hive-directory) REMOVE_WORKING_DIRECTORY=YES;              shift 1;;
+    -h|--help)              HELP=YES;                                  shift 1;;
+    --version)              PRINT_VERSION=YES;                         shift 1;;
     -*) echo "unknown option: $1" >&2; usage; exit 1;;
     *) ARGS="$@"; break;;
   esac
@@ -31,6 +38,13 @@ verbose() {
 }
 
 verbose "Start:"
+
+# VERSION
+# =======
+if [[ ${PRINT_VERSION} == YES ]];then
+   echo ${VERSION}
+   exit 0
+fi
 
 # CLEAN
 # =====
@@ -69,8 +83,8 @@ if [[ ${REMOVE_WORKING_DIRECTORY} == YES ]];then
 fi
 
 if [[ -f /.dockerenv ]];then
+    # HOST IS A CONTAINER
     verbose "Parent is a container"
-    # running from a container
     ubuntuContainer="ubuntu:14.04.2"
     hive_working_directory="hive_working_directory"
     container="hive_working_directory_to_volume"
@@ -104,7 +118,7 @@ if [[ -f /.dockerenv ]];then
     container_or_host="-v ${hive_working_directory}:/${hive_working_directory}"
     container_or_host+=" -e HIVE_HOME=/${hive_working_directory}"
 else
-    # running from a VM or host
+    # RUNNING FROM A BAREMETAL OR A VIRTUAL MACHINE (NOT A CONTAINER)
     verbose "Parent is host"
     container_or_host="-v /$(pwd):/$(pwd)"
     container_or_host+=" -e HIVE_HOME=/$(pwd)"
@@ -114,6 +128,14 @@ if [[ ${NOTTY} == YES ]];then
     TTY="";
 else
     TTY="-t"
+fi
+
+if [[ ${HELP} == YES && ${ARGS} == "" ]];then
+    usage
+    echo " "
+    echo "Hive Container options and Parameters:"
+    echo "======================================"
+    ARGS="-h"
 fi
 
 docker run -i ${TTY}                              \

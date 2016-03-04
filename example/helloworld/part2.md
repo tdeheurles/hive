@@ -6,7 +6,9 @@ mkdir hive-helloworld
 cd hive-helloworld
 ```
 
-Note to mac/windows users: run all this steps by using the `Docker Quickstart Terminal` in order to have your terminal correctly setup with the docker environment parameters.
+Note to mac/windows users: 
+- run all this steps by using the `Docker Quickstart Terminal` in order to have your terminal correctly setup with the docker environment parameters.
+- docker-toolbox share your Users folder with the docker toolbox virtual machine. Your hive project need to be under a children of the Users folder (or in a manually shared folder) as it will use the sources in your project.
 
 ##### INSTALL HIVE IN YOUR PROJECT (only once per project)
 Hive is just a bash script. You can install it by just copying it in your project. We propose `curl` to download it. You can also [download it by hand](https://github.com/tdeheurles/hive/releases/download/0.2.1/hive)

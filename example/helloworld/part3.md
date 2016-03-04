@@ -51,6 +51,7 @@ image="<% mySubProjectName.image %>:<% mySubProjectName.major %>.<% mySubProject
 container="<% mySubProjectName.name %>"
 
 docker kill ${container} 2&> /dev/null || true
+docker rm   ${container} 2&> /dev/null || true
 docker run -d         \
   --name ${container} \
   ${image}.${id}

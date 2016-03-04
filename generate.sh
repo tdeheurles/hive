@@ -10,4 +10,4 @@ id=$1
 # fail fast
 set -euo pipefail
 
-./hive do build devops hive id ${id}
+./hive -v do build devops hive id ${id}

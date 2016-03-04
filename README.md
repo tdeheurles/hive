@@ -73,7 +73,7 @@ hive services:
 ```
 
 ### Example
-Go [here](example/helloworld/part1.md) to see a full example
+Go [here](example/helloworld/readme.md) to see a full example
 
 ##### Note
 - the process is really similar to what we already do

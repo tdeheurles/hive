@@ -6,13 +6,15 @@ mkdir hive-helloworld
 cd hive-helloworld
 ```
 
-Note to mac/windows users: run all this steps by using the `Docker Quickstart Terminal` in order to have your terminal correctly setup with the docker environment parameters.
+Note to mac/windows users: 
+- run all this steps by using the `Docker Quickstart Terminal` in order to have your terminal correctly setup with the docker environment parameters.
+- docker-toolbox share your Users folder with the docker toolbox virtual machine. Your hive project need to be under a children of the Users folder (or in a manually shared folder) as it will use the sources in your project.
 
 ##### INSTALL HIVE IN YOUR PROJECT (only once per project)
 Hive is just a bash script. You can install it by just copying it in your project. We propose `curl` to download it. You can also [download it by hand](https://github.com/tdeheurles/hive/releases/download/0.2.1/hive)
 
 ```bash
-curl -L -O https://github.com/tdeheurles/hive/releases/download/0.2.1/hive
+curl -L -O https://github.com/tdeheurles/hive/releases/download/0.3/hive
 chmod 755 hive
 ```
 
@@ -70,13 +72,13 @@ docker tag ${image} ${image}.${id}
 
 Lets try to build with:
 ```bash
-$ ./hive do build myProjectName mySubProject
+$ ./hive do build myProjectName mySubProjectName
 incorrect hive cli parameter for <% cli.id %> in file hive.build.sh. No key value given
 ```
 
 `Hive` is complaining for a `cli parameter`, just give it by adding the key value` id 0` at our command:
 ```bash
-$ ./hive do build myProjectName mySubProject id 0
+$ ./hive do build myProjectName mySubProjectName id 0
 key: <% mySubProjectName.image %> not found in configuration, please, rerun with the config parameter
 ```
 
@@ -131,16 +133,17 @@ Your docker image is built and you can see it by running `docker images`
 
 ```bash
 $ docker images
-REPOSITORY                      TAG                 IMAGE ID            CREATED             SIZE
-tdeheurles/hive                 0.2                 0568b6f97fe4        20 hours ago        398.4 MB
-tdeheurles/my-subproject-name   0.0                 4865a5f43307        33 hours ago        188.4 MB
-tdeheurles/my-subproject-name   0.0.0               4865a5f43307        33 hours ago        188.4 MB
-ubuntu                          14.04.2             44ae5d2a191e        6 months ago        188.4 MB
+REPOSITORY                    TAG                 IMAGE ID            CREATED             SIZE
+tdeheurles/mysubprojectname   0.0                 d75d71c55341        44 seconds ago      188.4 MB
+tdeheurles/mysubprojectname   0.0.0               d75d71c55341        44 seconds ago      188.4 MB
+tdeheurles/hive               0.2                 af5f9d5364f2        11 hours ago        398.4 MB
+ubuntu                        14.04.2             44ae5d2a191e        7 months ago        188.4 MB
 ```
+
 Where we can see :
 - the base: `ubuntu:14.04.2`
 - the hive builder: `tdeheurles/hive:0.2`
-- our built image: `tdeheurles/my-subproject-name`
+- our built image: `tdeheurles/mysubprojectname` with its 2 tags `0.0` and `0.0.0`
 
 #### Run our project
 When you're done, move to the [run our project page](part3.md).

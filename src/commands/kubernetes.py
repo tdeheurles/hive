@@ -119,8 +119,7 @@ class kubernetes(Command):
 
         build = args["build"]
         environment = args["environment"]
-        kubernetes_configuration = hive_config.kubernetes
-        deployment_strategy = self._control_deployment_strategy(args, kubernetes_configuration, environment)
+        deployment_strategy = self._control_deployment_strategy(args, hive_config, environment)
 
         file_transpiler = FileGenerator(self.subprocess)
 
@@ -280,14 +279,12 @@ class kubernetes(Command):
         )
         hive_file_transpiler.cleanup([kind_short_name + ".yml"], sub_project.path + "/kubernetes")
 
-    def _control_deployment_strategy(self, args, deployment, environment):
-        if "deploymentStrategy" not in deployment:
-            sys.exit("hive file must comport a spec.kubernetes.deploymentStrategy field")
-        deployment_strategy = deployment["deploymentStrategy"]
+    def _control_deployment_strategy(self, args, hive_file, environment):
+        deployment_strategy = "Recreate"
+        if "deploymentStrategy" in hive_file.kubernetes:
+            deployment_strategy = hive_file.kubernetes["deploymentStrategy"]
 
         if deployment_strategy == "Recreate":
-            # self.subprocess.call(["echo $(pwd)"], shell=True)
-            # sys.exit(0)
             namespaces = KubernetesNamespace.namespaces_from_api_call(
                     self.subprocess.check_output(self._cli + " get ns", shell=True)
             )
@@ -300,11 +297,11 @@ class kubernetes(Command):
 
             create_environment_args = {
                 "name": environment,
-                "project": deployment["project"]
+                "project": hive_file.configuration["project"]
             }
 
-            if "subproject" in args:
-                create_environment_args["subproject"] = args["subproject"]
+            # if "subproject" in args:
+            #     create_environment_args["subproject"] = args["subproject"]
 
             self.create_environment(create_environment_args)
 

@@ -25,5 +25,5 @@ Install docker from [this page](https://docs.docker.com/engine/installation/) by
 Confirm that everything is fine by following the docker helloworld at the end of installation.
 
 #### Create our project
-When you're done, move to the [create project page](part2.md).
+When you're done, move to the [create project page](part1.md).
 

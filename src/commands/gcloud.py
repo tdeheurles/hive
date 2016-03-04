@@ -14,7 +14,6 @@ class gcloud(Command):
             "-v hive_cache_gcloud:/root/.config " + \
             "-v hive_cache_kube:/root/.kube " + \
             "-v hive_share:/hive_share " + \
-            "-v kubernetes_credentials:/kubernetes_credentials" + \
             "-v ${PWD}:${PWD} " + \
             "-w ${PWD} " + \
             "weareadaptive/gcloud:1.0 "

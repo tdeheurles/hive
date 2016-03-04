@@ -6,6 +6,7 @@ image="<% __SERVICE_NAME__.image %>:<% __SERVICE_NAME__.major %>.<% __SERVICE_NA
 container="<% __SERVICE_NAME__.name %>"
 
 docker kill ${container} 2&> /dev/null || true
+docker rm   ${container} 2&> /dev/null || true
 docker run -d         \
   --name ${container} \
   ${image}.${id}

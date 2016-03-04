@@ -2,10 +2,11 @@
 
 In this part we will:
 - generate the kubernetes manifest files with hive
-- automate their configuration using hive variable system
+- show that their automation is done by the hive variable system
+- create a docker hub account
 - push our server docker image to docker.hub
 - deploy our server into our cluster
-- make some operations
+- make some scaling operations
 
 ### Generate the kubernetes manifests
 We need to generate two files: 
@@ -75,6 +76,8 @@ You can see that most of the elements are linked to our configuration file `hive
 
 The `port` is not linked to configuration element and is bind to 80. It's easy to update 80 to `<% mySubprojectName.port %>` and to do the same in the nginx configuration. That's where `hive variable` system start to remove pain of all this devops stuff.
 
+##### Expose the service to the internet
+
 Open the `hive.svc.yml` and add `spec.type: "LoadBalancer"` :
 ```yaml
 apiVersion: v1
@@ -99,7 +102,7 @@ That new parameter will ask the google cluster to link mySubProjectName service 
 ### Push our container to docker.hub
 Go to [docker hub](https://hub.docker.com/) and create an account.
 
-Then loggin our docker client with your new credentials:
+Then loggin the docker client with your new credentials:
 
 ```bash
 $ ./hive docker cli login
@@ -190,7 +193,7 @@ service "mysubprojectname" created
 replicationcontroller "mysubprojectname-0-0-0" created
 ```
 
-And control its status with:
+- control its status with:
 
 ```bash
 $ ./hive kubernetes namespaces
@@ -201,7 +204,8 @@ test          project=myProjectName   Active    1m
 ```
 Here we can see that our `test` environment is deployed. `default` and `kube-system` are environment used by the kubernetes cluster.
  
-and:
+- and:
+
 ```bash
 $ ./hive kubernetes status test
 
@@ -226,13 +230,14 @@ NAME                               LABELS                                       
 gke-mycluster-7dd21d65-node-c5g4   kubernetes.io/hostname=gke-mycluster-7dd21d65-node-c5g4   Ready     58m
 gke-mycluster-7dd21d65-node-lolq   kubernetes.io/hostname=gke-mycluster-7dd21d65-node-lolq   Ready     1h
 ```
-Here we can see:
-- our service `mysubprojectname` running on CLUSTER__IP 10.19.255.185 and exposing `port 80`
-- the EXTERNAL_IP is blank as we need to wait around one minute for it to appear (re run the command in a minute)
+
+We can see:
+- our service `mysubprojectname` running on CLUSTER_IP 10.19.255.185 and exposing `port 80`
+- the EXTERNAL_IP is blank as we need to wait around one minute for it to appear (re run the command in a minute to see it)
 - our replicationController `mysubprojectname-0-0-0`. It runs the image `tdeheurles/mysubprojectname:0.0.0` with `1 REPLICAS`
 - the pod `mysubprojectname-0-0-0-bcf1p`. A pod is the kubernetes unit, it can host multiple container at once. Here it only host our container.
 
-Run the command again to obtain your EXTERNAL__IP:
+Run the command again to obtain your EXTERNAL_IP:
 ```bash
 $ ./hive kubernetes status test
 
@@ -304,11 +309,12 @@ NAME                               LABELS                                       
 gke-mycluster-7dd21d65-node-c5g4   kubernetes.io/hostname=gke-mycluster-7dd21d65-node-c5g4   Ready     1h
 gke-mycluster-7dd21d65-node-lolq   kubernetes.io/hostname=gke-mycluster-7dd21d65-node-lolq   Ready     1h
 ```
-We have now 5 replicas of our application.
+We have now 5 replicas (5 PODS) of our application. The replicationController REPLICAS is now set to 5.
 
 ### Cleanup
-We can stop the application (not the cluster) by running (don't do if you want to continue):
+We can stop the application (not the cluster) by running:
 ```bash
+# don't do if you want to continue
 ./hive kubernetes delete test
 ```
 

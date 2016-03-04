@@ -11,14 +11,14 @@ If the project is already created, ask your admin/devops guy to add you to the p
 Else you can create one and benefit from 2 month free.
 
 If you don't have a project:
-go to [this page](https://cloud.google.com/container-engine/docs/before-you-begin#sign_up_for_a_google_account) and follow tutorial until `install gcloud part`.  
+go to [this page](https://cloud.google.com/container-engine/docs/before-you-begin#sign_up_for_a_google_account) and follow tutorial until the `install gcloud part` excluded.  
 
 You should have done:
 - sign up for google account
 - enable billing
 - enable the container engine app (after creating a project).
 
-Now we will get your gcloud credentials:
+Now we can get your gcloud credentials:
 ```bash
 $ ./hive gcloud init
 hive_cache_gcloud
@@ -39,7 +39,7 @@ form+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fappengine.admin+https%3A%2F%2Fwww
 
 Enter verification code: 4/5eFpMqiO8ZhZ6GQr7VPTx_B0lkcWWR5yKrZGkDc
 ```
-Copy/Paster the link to a browser (work with firefox/ie - some issue with chrome), make your authentication and copy the token back to your CLI:
+Copy/Paste the link to a browser (work with firefox/ie - some issue with chrome), make your authentication and copy the token back to your CLI:
 ```
 You are now logged in as: [tdeheurles@gmail.com]
 
@@ -77,7 +77,7 @@ disable_usage_reporting = False
 project = myProjectName
 ```
 
-Our credentials are now saved into a data container and we won't need to do that for each project.
+Our credentials are now saved into a data container named `hive_cache_gcloud`. You won't need to do that for each project.
 
 ### create a cluster
 To create a cluster, we need to choose the datacenter and the kind of node. 
@@ -112,7 +112,7 @@ n1-standard-8  europe-west1-d 8    30.00
 
 [ ... ]
 ```
-Here is the long list of what you can choose. We will setup a cluster named `mycluster` in `europe-west1-b` with nodes of kind `n1-standard-1`:
+Here is a part of the long list of what you can choose. We will setup a cluster named `mycluster` in `europe-west1-b` with nodes of kind `n1-standard-1`:
 ```bash
 $ ./hive gcloud create_cluster mycluster europe-west1-b n1-standard-1
 create command can take a few seconds ...
@@ -125,8 +125,8 @@ mycluster  europe-west1-b  1.1.8           104.156.108.20   n1-standard-1  1.1.8
  
 Just wait a few minutes for the setup to proceed and you will have kubernetes cluster. Don't forget that billing is started from this moment (around 1$ per day or 0.007$ per minutes). Deleting the cluster stop the billing.
  
-### set autoscaling on for our cluster
-Here we ask the gcloud cluster to scale automatically if we add too much containers. We will the nodes to target 75% of CPU on each nodes. Kubernetes will move your container to reorganise the number of nodes.
+### set autoscaling on for our cluster (optional)
+We now ask the gcloud cluster to scale automatically if we add too much containers. We ask the nodes to target 75% of CPU on each nodes. Kubernetes will move your container to reorganise the number of nodes.
  
 We autoscale the cluster named `mycluster` with a target of `0.75` of CPU, a maximum of `5` nodes and we tell the monitoring to wait `120` seconds after a node count change before taking a new decision:
 ```bash
@@ -158,4 +158,4 @@ For your information, it's easy to cleanup our cluster (but don't do it if you w
 And that's all
 
 ### deploy our application
-Now that our cluster is, we can [deploy our application](part6.md).
+Now that our cluster is up, we can [deploy our application](part6.md).

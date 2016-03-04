@@ -51,6 +51,23 @@ ebfc3a74f160: Layer already exists
 ```
 
 ### Deploy it
+
+```bash
+$ ./hive kubernetes deploy myProjectName test 1
+
+==================
+namespace "test" deleted
+Giving time for namespace to be completely removed ...
+namespace "test" created
+
+==================
+service "mysubprojectname" created
+
+==================
+replicationcontroller "mysubprojectname-0-0-1" created
+```
+
+### Monitor it
 Wait a minute for the EXTERNAL_IP (Note that we get around this wait time by using nsgate)
 ```
 $ ./hive kubernetes status test

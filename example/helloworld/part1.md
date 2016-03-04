@@ -14,7 +14,7 @@ Note to mac/windows users:
 Hive is just a bash script. You can install it by just copying it in your project. We propose `curl` to download it. You can also [download it by hand](https://github.com/tdeheurles/hive/releases/download/0.2.1/hive)
 
 ```bash
-curl -L -O https://github.com/tdeheurles/hive/releases/download/0.3/hive
+curl -L -o https://github.com/tdeheurles/hive/releases/download/latest/hive
 chmod 755 hive
 ```
 

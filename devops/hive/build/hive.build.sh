@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-id="<% args.id %>"
+id="<% cli.id %>"
 image="<% image.hive %>:<% version.hive.major %>.<% version.hive.minor %>"
 
 cp -r ../../../src .

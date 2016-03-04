@@ -1,91 +1,16 @@
-# Create our project
+# RUN IT
 
-Create a folder for our project and move inside:
-```bash
-mkdir hive-helloworld
-cd hive-helloworld
-```
-
-Note to mac/windows users: 
-- run all this steps by using the `Docker Quickstart Terminal` in order to have your terminal correctly setup with the docker environment parameters.
-- docker-toolbox share your Users folder with the docker toolbox virtual machine. Your hive project need to be under a children of the Users folder (or in a manually shared folder) as it will use the sources in your project.
-
-##### INSTALL HIVE IN YOUR PROJECT (only once per project)
-Hive is just a bash script. You can install it by just copying it in your project. We propose `curl` to download it. You can also [download it by hand](https://github.com/tdeheurles/hive/releases/download/0.2.1/hive)
+##### TRY IT
+Now, let's run our `docker image` locally as a `docker container` (image are like class and container like instance):
 
 ```bash
-curl -L -O https://github.com/tdeheurles/hive/releases/download/0.3/hive
-chmod 755 hive
+$ ./hive do run myProjectName mySubProjectName id 0
+key: <% mySubProjectName.name %> not found in configuration, please, rerun with the config parameter
 ```
 
-##### GENERATE THE DEVOPS CODE (only once per project)
-```bash
-./hive template init myProjectName --maintainer tdeheurles@gmail.com
-```
-This will generate a folder `myProjectName` and a bootstrap for the project configuration in a `myProjectName/hive.yml` file.
- 
-```bash
-./hive template docker myProjectName mySubProjectName --build --local
-```
-- This will generate a folder `mySubProjectName` in `myProjectName`. `--build` ask to generate the files to build and push your image while `--local` generates the files to run and kill your container.
-- you should have the following structure:
-```
-hive-helloworld
- - myProjectName
-   - mySubProjectName
-     - build
-       - hive.Dockerfile
-       - hive.build.sh
-       - hive.push.sh
-     - run
-       - hive.run.sh
-     - kill
-       - hive.kill.sh
-   - hive.yml
- - hive
-```
-We will come back later to each of this elements.
+The configuration stop you by asking another configuration parameter. It's the name of the container. A tag that is use to recognise it, to ask for the logs, kill it ... use something simple as it will be local, just know that it should be unique across your projects to not erase a container that is already running locally (not talking of kubernetes here).
 
-##### BUILD
-We will now build our `docker image`. 
-The concerned elements are:
-- `hive`: to run the commands
-- `myProjectName/hive.yml`: to put the configuration
-- `myProjectName/mySubprojectName/build/hive.Dockerfile` to automate the build of the docker image
-- `myProjectName/mySubprojectName/build/hive.build.sh` to script the build and docker tags
-
-Have a look to `myProjectName/mySubprojectName/build/hive.build.sh`:
-```bash
-#!/bin/bash
-set -euo pipefail
-
-id="<% cli.id %>"
-image="<% mySubProjectName.image %>:<% mySubProjectName.major %>.<% mySubProjectName.minor %>"
-
-docker build -t ${image} .
-docker tag ${image} ${image}.${id}
-```
-- The tag `<% cli.id %>` ask for a parameter from the CLI and the runtime
-- The tags like `<% mySubProjectName.image %> are here to collect the configuration from the `myProjectName/hive.yml`
-- Then we run a `docker build` and a `docker tag`
-- note that this is a wanted simple template, build can be more complicated and we will look to that later
-
-Lets try to build with:
-```bash
-$ ./hive do build myProjectName mySubProjectName
-incorrect hive cli parameter for <% cli.id %> in file hive.build.sh. No key value given
-```
-
-`Hive` is complaining for a `cli parameter`, just give it by adding the key value` id 0` at our command:
-```bash
-$ ./hive do build myProjectName mySubProjectName id 0
-key: <% mySubProjectName.image %> not found in configuration, please, rerun with the config parameter
-```
-
-Fine, the error have changed to a `configuration error`. We need to give hive our configuration.
-
-As we sayed before, the configuration is done in the `myProjectName/hive.yml` file.
-
+Fill it in `hive.yml`:
 ```yaml
 apiVersion: v0
 kind: HiveConfig
@@ -93,18 +18,7 @@ spec:
   configuration:
     project: myProjectName
     maintainer: tdeheurles@gmail.com
-```
 
-Open it in an editor and fill the configuration by running `./hive do build myProjectName mySubProject id 0` in order to ask hive all the needed configuration.
-  
-You should finish with something like this:
-```yaml
-apiVersion: v0
-kind: HiveConfig
-spec:
-  configuration:
-    project: myProjectName
-    maintainer: tdeheurles@gmail.com
     mySubProjectName:
       image: tdeheurles/mysubprojectname
       major: 0
@@ -113,37 +27,55 @@ spec:
       name: mysubprojectname
 ```
 
-Understand here that this will help to manage your project with an easy and protective configuration mecanism. We are not sure for now that having a pre-filled configuration is better as you will need to erase them for sure. A more direct way will be added soon where all the needed configuration will appear at once.
-
-Finally, you should have something like that:
-```
-$ ./hive do build myProjectName mySubProjectName id 0
-Sending build context to Docker daemon 7.168 kB
-Step 1 : FROM ubuntu:14.04.2
- ---> 44ae5d2a191e
-Step 2 : MAINTAINER tdeheurles@gmail.com
- ---> Using cache
- ---> 8cf229a0d8ca
-Step 3 : ENTRYPOINT echo hi
- ---> Using cache
- ---> 4865a5f43307
-Successfully built 4865a5f43307
-```
-Your docker image is built and you can see it by running `docker images`
-
+And run the command again:
 ```bash
-$ docker images
-REPOSITORY                    TAG                 IMAGE ID            CREATED             SIZE
-tdeheurles/mysubprojectname   0.0                 d75d71c55341        44 seconds ago      188.4 MB
-tdeheurles/mysubprojectname   0.0.0               d75d71c55341        44 seconds ago      188.4 MB
-tdeheurles/hive               0.2                 af5f9d5364f2        11 hours ago        398.4 MB
-ubuntu                        14.04.2             44ae5d2a191e        7 months ago        188.4 MB
+$ ./hive do run myProjectName mySubProjectName id 0
+052120db382e7767b14a9ee42277bc36674a985560f4f135db01ca04ab530041
+```
+`052120db382e7767b14a9ee42277bc36674a985560f4f135db01ca04ab530041` is the id of your container. It can be used instead of the name we have defined before.
+
+We can look to its logs by running:
+```bash
+$ docker logs mysubprojectname
+hi
 ```
 
-Where we can see :
-- the base: `ubuntu:14.04.2`
-- the hive builder: `tdeheurles/hive:0.2`
-- our built image: `tdeheurles/mysubprojectname` with its 2 tags `0.0` and `0.0.0`
+##### WHAT HAVE BEEN RUN
+The script that `hive` have triggered is ``myProjectName/mySubprojectName/run/hive.run.sh`:
+```bash
+#!/bin/bash
+set -euo pipefail
 
-#### Run our project
-When you're done, move to the [run our project page](part3.md).
+id="<% cli.id %>"
+image="<% mySubProjectName.image %>:<% mySubProjectName.major %>.<% mySubProjectName.minor %>"
+container="<% mySubProjectName.name %>"
+
+docker kill ${container} 2&> /dev/null || true
+docker rm   ${container} 2&> /dev/null || true
+docker run -d         \
+  --name ${container} \
+  ${image}.${id}
+```
+
+- As usual, we first get a list of parameter from configuration and cli
+- then we ensure that a container with the name `mySubProjectName` is not running (with `docker kill`)
+- finally run our container (`docker run`), as a daemon (`-d`) with the name `mySubProjectName`.
+
+##### OK, BUT WHY DOES IT PRINT `hi` ?
+This have been defined in our `build/hive.Dockerfile`:
+```
+FROM <% mySubProjectName.base %>
+MAINTAINER <% maintainer %>
+
+ENTRYPOINT ["echo", "hi"]
+```
+We have defined that: 
+- our image is `ubuntu`: `FROM <% mySubProjectName.base %>`
+- `echo hi` when we instantiate it: ENTRYPOINT ["echo", "hi"]
+
+Note that a docker container stop after having done is job. So here, it just vanish after the console output.
+
+We have run it as a daemon as hive is generally used to start services. It's what we look in the next chapter. 
+
+##### SETUP OUR IMAGE AS A SERVICE
+When you're done, let's setup a simple web server to host a Helloworld. Move to the [next chapter](part3.md)

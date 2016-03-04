@@ -1,111 +1,161 @@
-# SETUP OUR IMAGE AS A SERVICE
+# Create a kubernetes cluster on gcloud
 
-So, let's generate a really simple helloworld project.  
-We will build a nginx container that will host a index.html page.
+Hive can manage simple parts of a gcloud kubernetes cluster.  
+Note that hive can connect to any kubernetes cluster (not only gcloud ones).
 
-### Generate the sources
-```
-mkdir src
-echo "Hello from the Hive" > src/index.html
-```
+### Credentials
 
-and that's all as it's a really simple project.
+In order to have access to gcloud, you need to create a project or be added to an existing project. 
+A gcloud project can host multiple cluster. 
+If the project is already created, ask your admin/devops guy to add you to the project. 
+Else you can create one and benefit from 2 month free.
 
-### Generate the nginx configuration
+If you don't have a project:
+go to [this page](https://cloud.google.com/container-engine/docs/before-you-begin#sign_up_for_a_google_account) and follow tutorial until the `install gcloud part` excluded.  
 
-We will now setup a more ambitious container build.  
-We need to:
-- set nginx as the base image (see the [docker.hub for nginx](https://hub.docker.com/_/nginx/))
-- update our container build to copy the index.html and start nginx when we run it
+You should have done:
+- sign up for google account
+- enable billing
+- enable the container engine app (after creating a project).
 
-##### set nginx as the base image
-Just open `devops/hive.yml` and change the base image to `nginx:1.9.7`
-```yaml
-apiVersion: v0
-kind: HiveConfig
-spec:
-  configuration:
-    project: myProjectName
-    maintainer: tdeheurles@gmail.com
-    
-    mySubProjectName:
-      image: tdeheurles/mysubprojectname
-      major: 0
-      minor: 0
-      base: nginx:1.9.7
-      name: mysubprojectname
-```
-
-##### update our container build and run mecanism to match nginx requirement
-Open the `hive.Dockerfile` in an editor and make it like that:
-```
-FROM <% mySubProjectName.base %>
-MAINTAINER <% maintainer %>
-
-COPY index.html /usr/share/nginx/html/index.html
-```
-- we remove the entrypoint (the container will use the one from the nginx image
-- we add `COPY index.html /usr/share/html/index.html
-
-As docker build can only copy the files that are in its context, we need to add index.html to its context by copying it to the Dockerfile folder.
-
-Open `hive.build.sh` and update it like that:
+Now we can get your gcloud credentials:
 ```bash
-#!/bin/bash
-set -euo pipefail
+$ ./hive gcloud init
+hive_cache_gcloud
+Welcome! This command will take you through the configuration of gcloud.
 
-id="<% cli.id %>"
-image="<% mySubProjectName.image %>:<% mySubProjectName.major %>.<% mySubProjectName.minor %>"
+Your current configuration has been set to: [default]
 
-# get the sources
-cp ../../../src/index.html .
-
-# build and tag
-docker build -t ${image} .
-docker tag ${image} ${image}.${id}
-
-# cleanup the directory
-rm index.html
+To continue, you must login. Would you like to login (Y/n)?  y
 ```
-Note that this part is not automated as we think that each project will be special. Just do what you need. The good part is that you know that this code will be run inside a linux container and will be portable across environment.
+Just say `y` then:
+```
+Go to the following link in your browser:
 
-Finally, open `hive.run.sh` and make it match our new intention: `serve port 80`:
+    https://accounts.google.com/o/oauth2/auth?redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&prompt=select_account&response_type=code&client_id=325
+594559.apps.googleusercontent.com&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-plat
+form+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fappengine.admin+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcompute&access_type=offline
+
+
+Enter verification code: 4/5eFpMqiO8ZhZ6GQr7VPTx_B0lkcWWR5yKrZGkDc
+```
+Copy/Paste the link to a browser (work with firefox/ie - some issue with chrome), make your authentication and copy the token back to your CLI:
+```
+You are now logged in as: [tdeheurles@gmail.com]
+
+Pick cloud project to use:
+ [1] [myProjectName]
+ [2] [myOtherProjectName]
+Please enter your numeric choice:  1
+```
+Choose your project by using the int id
+```
+Your current project has been set to: [myProjectName].
+
+Your project default compute zone has been set to [europe-west1-c].
+You can change it by running [gcloud config set compute/zone NAME].
+
+Your project default compute region has been set to [europe-west1].
+You can change it by running [gcloud config set compute/region NAME].
+
+Do you want to use Google's source hosting (see
+https://cloud.google.com/tools/cloud-repositories/) (Y/n)?  n
+```
+As our project have already a git, answrer `n`
+```
+gcloud has now been configured!
+You can use [gcloud config] to change more gcloud settings.
+
+Your active configuration is: [default]
+
+[compute]
+region = europe-west1
+zone = europe-west1-c
+[core]
+account = tdeheurles@gmail.com
+disable_usage_reporting = False
+project = myProjectName
+```
+
+Our credentials are now saved into a data container named `hive_cache_gcloud`. You won't need to do that for each project.
+
+### create a cluster
+To create a cluster, we need to choose the datacenter and the kind of node. 
+
+Show the possibilities:
 ```bash
-#!/bin/bash
-set -euo pipefail
+$ ./hive gcloud show
+NAME           ZONE           CPUS MEMORY_GB DEPRECATED
+[ ... ]
 
-id="<% cli.id %>"
-image="<% mySubProjectName.image %>:<% mySubProjectName.major %>.<% mySubProjectName.minor %>"
-container="<% mySubProjectName.name %>"
+f1-micro       asia-east1-c   1     0.60
+g1-small       asia-east1-c   1     1.70
+n1-highcpu-16  asia-east1-c   16   14.40
+f1-micro       europe-west1-d 1     0.60
+g1-small       europe-west1-d 1     1.70
+n1-highcpu-16  europe-west1-d 16   14.40
+n1-highcpu-2   europe-west1-d 2     1.80
+n1-highcpu-32  europe-west1-d 32   28.80
+n1-highcpu-4   europe-west1-d 4     3.60
+n1-highcpu-8   europe-west1-d 8     7.20
+n1-highmem-16  europe-west1-d 16   104.00
+n1-highmem-2   europe-west1-d 2    13.00
+n1-highmem-32  europe-west1-d 32   208.00
+n1-highmem-4   europe-west1-d 4    26.00
+n1-highmem-8   europe-west1-d 8    52.00
+n1-standard-1  europe-west1-d 1     3.75
+n1-standard-16 europe-west1-d 16   60.00
+n1-standard-2  europe-west1-d 2     7.50
+n1-standard-32 europe-west1-d 32   120.00
+n1-standard-4  europe-west1-d 4    15.00
+n1-standard-8  europe-west1-d 8    30.00
 
-docker kill ${container} 2&> /dev/null || true
-docker rm   ${container} 2&> /dev/null || true
-docker run -d         \
-  --name ${container} \
-  -p 80:80            \
-  ${image}.${id}
+[ ... ]
 ```
-We have just added a `-p 80:80` line to the `docker run`
-
-### build and run it
-And now, build run test and kill ...
+Here is a part of the long list of what you can choose. We will setup a cluster named `mycluster` in `europe-west1-b` with nodes of kind `n1-standard-1`:
+```bash
+$ ./hive gcloud create_cluster mycluster europe-west1-b n1-standard-1
+create command can take a few seconds ...
+Creating cluster mycluster...done.
+ Created [https://container.googleapis.com/v1/projects/myprojectname/zones/europe-west1-b/clusters/mycluster].
+kubeconfig entry generated for mycluster.
+NAME       ZONE            MASTER_VERSION  MASTER_IP        MACHINE_TYPE   NODE_VERSION  NUM_NODES  STATUS
+mycluster  europe-west1-b  1.1.8           104.156.108.20   n1-standard-1  1.1.8         1          RUNNING
 ```
-# BUILD
-$ ./hive do build myProjectName mySubProjectName id 1
-
-# RUN
-$ ./hive do run   myProjectName mySubProjectName id 1
-
-# TEST
-$ curl 192.168.99.100
-Hello from the Hive
-
-# KILL
-$ ./hive do kill myProjectName mySubProjectName
-mysubprojectname
+ 
+Just wait a few minutes for the setup to proceed and you will have kubernetes cluster. Don't forget that billing is started from this moment (around 1$ per day or 0.007$ per minutes). Deleting the cluster stop the billing.
+ 
+### set autoscaling on for our cluster (optional)
+We now ask the gcloud cluster to scale automatically if we add too much containers. We ask the nodes to target 75% of CPU on each nodes. Kubernetes will move your container to reorganise the number of nodes.
+ 
+We autoscale the cluster named `mycluster` with a target of `0.75` of CPU, a maximum of `5` nodes and we tell the monitoring to wait `120` seconds after a node count change before taking a new decision:
+```bash
+$ ./hive gcloud autoscale mycluster 0.75 5 120
+autoscale command can take a few seconds ...
+Created [https://www.googleapis.com/compute/v1/projects/myprojectname/zones/europe-west1-b/autoscalers/gke-mycluster-7dd21d65-group-i9ps].
+---
+autoscalingPolicy:
+  coolDownPeriodSec: 120
+  cpuUtilization:
+    utilizationTarget: 0.75
+  maxNumReplicas: 5
+  minNumReplicas: 2
+creationTimestamp: '2016-03-04T07:24:57.188-08:00'
+id: '5869340100973041190'
+kind: compute#autoscaler
+name: gke-mycluster-7dd21d65-group-i9ps
+selfLink: https://www.googleapis.com/compute/v1/projects/myprojectname/zones/europe-west1-b/autoscalers/gke-mycluster-7dd21d65-group-i9ps
+target: gke-mycluster-7dd21d65-group
+zone: europe-west1-b
 ```
-Note that I'm using `192.168.99.100` as I'm running it from a Windows Host with docker-toolbox.
 
-### let's deploy it to a kubernetes cluster
-But first we need a kubernetes cluster ... ^^  
-So let's [generate one](part5.md)
+### stop the google billing
+For your information, it's easy to cleanup our cluster (but don't do it if you want to continue the tutorial).
+
+```bash
+./hive gcloud delete mycluster
+```
+And that's all
+
+### deploy our application
+Now that our cluster is up, we can [deploy our application](part5.md).

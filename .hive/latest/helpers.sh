@@ -123,8 +123,7 @@ start_hive() {
 }
 
 main() {
-    #hive_container="tdeheurles/hive:${VERSION}"
-    hive_container="tdeheurles/hive:0.3"
+    hive_container="tdeheurles/hive:${VERSION}"
 
     # CONTROL PARAMETERS
     while [ "$#" -gt 0 ]; do

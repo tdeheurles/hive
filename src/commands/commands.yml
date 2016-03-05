@@ -22,7 +22,7 @@ gcloud:
     init:
       help: setup the user account and project
       type: code
-    credentials:
+    set_cluster:
       help: get the project credentials
       type: code
       parameters:

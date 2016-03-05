@@ -26,7 +26,7 @@ class gcloud(Command):
         self.subprocess.check_call(["docker", "volume", "create", "--name=hive_cache_gcloud"])
         self.subprocess.check_call(self._cli + "init", shell=True)
 
-    def credentials(self, args):
+    def set_cluster(self, args):
         self._verbose("credentials")
         self.subprocess.check_call(["docker", "volume", "create", "--name=hive_cache_kube"])
         self.subprocess.check_call(

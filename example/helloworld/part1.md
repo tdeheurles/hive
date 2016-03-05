@@ -66,8 +66,8 @@ image="<% mySubProjectName.image %>:<% mySubProjectName.major %>.<% mySubProject
 docker build -t ${image} .
 docker tag ${image} ${image}.${id}
 ```
-- The tag `<% cli.id %>` ask for a parameter from the CLI and the runtime
-- The tags like `<% mySubProjectName.image %> are here to collect the configuration from the `myProjectName/hive.yml`
+- The tag `<% cli.id %>` ask for a parameter from the CLI at the runtime
+- The tags like `<% mySubProjectName.image %>` are here to collect the configuration from the `myProjectName/hive.yml`
 - Then we run a `docker build` and a `docker tag`
 - note that this is a wanted simple template, build can be more complicated and we will look to that later
 
@@ -111,7 +111,6 @@ spec:
       major: 0
       minor: 0
       base: ubuntu:14.04.2
-      name: mysubprojectname
 ```
 
 Understand here that this will help to manage your project with an easy and protective configuration mecanism. We are not sure for now that having a pre-filled configuration is better as you will need to erase them for sure. A more direct way will be added soon where all the needed configuration will appear at once.
@@ -141,7 +140,7 @@ tdeheurles/hive               0.2                 af5f9d5364f2        11 hours a
 ubuntu                        14.04.2             44ae5d2a191e        7 months ago        188.4 MB
 ```
 
-Where we can see :
+Where you can see :
 - the base: `ubuntu:14.04.2`
 - the hive builder: `tdeheurles/hive:0.2`
 - our built image: `tdeheurles/mysubprojectname` with its 2 tags `0.0` and `0.0.0`

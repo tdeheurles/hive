@@ -16,6 +16,7 @@ Hive is just a bash script. You can install it by just copying it in your projec
 ```bash
 curl -L -o https://github.com/tdeheurles/hive/releases/download/latest/hive
 chmod 755 hive
+./hive --update
 ```
 
 ##### GENERATE THE DEVOPS CODE (only once per project)

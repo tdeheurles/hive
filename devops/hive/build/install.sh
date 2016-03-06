@@ -8,6 +8,9 @@ pip install pyyaml
 apt-get remove python-pip -y
 apt-get autoremove -y
 
+# curl
+apt-get install curl -y
+
 # docker
 apt-get install wget -y
 cd /usr/bin

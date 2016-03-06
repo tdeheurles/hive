@@ -20,24 +20,24 @@ class kubernetes(Command):
         Command.__init__(self, "kubernetes", subprocess, hive_home, options)
 
         self.resources_path = '/hive_share/kubernetes/manifests'
-        self._cli = gcloud(subprocess, hive_home, options).get_container() + " kubectl "
+        self.kubectl = gcloud(subprocess, hive_home, options).get_container() + " kubectl "
 
     # commands
     def status(self, args):
         self._verbose("status")
         namespace = "--namespace=" + args["namespace"]
         print "\n\033[92m==================== SERVICES ====================\n\033[0m"
-        self.subprocess.check_call(self._cli + " get services " + namespace, shell=True)
+        self.subprocess.check_call(self.kubectl + " get services " + namespace, shell=True)
         print "\n\033[92m======================= RC =======================\n\033[0m"
-        self.subprocess.check_call(self._cli + " get rc " + namespace, shell=True)
+        self.subprocess.check_call(self.kubectl + " get rc " + namespace, shell=True)
         print "\n\033[92m====================== PODS ======================\n\033[0m"
-        self.subprocess.check_call(self._cli + " get pods " + namespace, shell=True)
+        self.subprocess.check_call(self.kubectl + " get pods " + namespace, shell=True)
         print "\n\033[92m====================== NODES =====================\n\033[0m"
-        self.subprocess.check_call(self._cli + " get nodes " + namespace, shell=True)
+        self.subprocess.check_call(self.kubectl + " get nodes " + namespace, shell=True)
 
     def namespaces(self, args):
         self._verbose("namespaces")
-        self.subprocess.check_call(self._cli + " get ns", shell=True)
+        self.subprocess.check_call(self.kubectl + " get ns", shell=True)
 
     def cli(self, args):
         self._verbose("cli")
@@ -52,7 +52,7 @@ class kubernetes(Command):
         manifest_factory = ManifestFactory()
         manifest = manifest_factory.new_namespace(args)
         output = json.dumps(manifest)
-        self._create_resource(output, self.resources_path, '/namespace.json')
+        self.create_resource(output, self.resources_path, '/namespace.json')
 
     def delete(self, args):
         self._verbose("delete")
@@ -71,7 +71,7 @@ class kubernetes(Command):
         for i in range(0, len(parameters), 2):
             pattern = pattern.replace(parameters[i], parameters[i + 1])
 
-        self._create_resource(pattern, self.resources_path, '/resource')
+        self.create_resource(pattern, self.resources_path, '/resource')
 
     def scale(self, args):
         # NEED TO UPDATE SERVICE TO SOMETHING EASIER TO SPELL: ie: PRICING should become PRICING-0-0-860
@@ -198,6 +198,7 @@ class kubernetes(Command):
     #     if error is not None:
     #         sys.exit(error)
 
+
     # helpers
     def _get_pods_by_name(self, name, namespace):
         call = self._get_pods(namespace)
@@ -207,7 +208,7 @@ class kubernetes(Command):
 
     def _get_pods(self, namespace):
         return self.subprocess.check_output(
-                self._cli + "get pods --namespace=" + namespace,
+                self.kubectl + "get pods --namespace=" + namespace,
                 shell=True
         )
 
@@ -217,11 +218,11 @@ class kubernetes(Command):
 
         testtool_pod["metadata"]["namespace"] = namespace
 
-        self._create_resource(
+        self.create_resource(
                 json.dumps(testtool_pod), '/hive_share/kubernetes/pods', namespace + '-testtool.json'
         )
 
-    def _create_resource(self, output, path, file_name):
+    def create_resource(self, output, path, file_name):
         if not os.path.exists(path):
             os.makedirs(path)
 
@@ -250,7 +251,7 @@ class kubernetes(Command):
     def _execute_command(self, command):
         try:
             self.subprocess.check_call(
-                    "cd " + self.hive_home + " && " + self._cli + " " + command,
+                    "cd " + self.hive_home + " && " + self.kubectl + " " + command,
                     shell=True
             )
         except self.subprocess.CalledProcessError as error:
@@ -272,7 +273,7 @@ class kubernetes(Command):
 
         template["metadata"]["namespace"] = environment
 
-        self._create_resource(
+        self.create_resource(
                 json.dumps(template),
                 self.resources_path,
                 kind_short_name + ".yml"
@@ -286,7 +287,7 @@ class kubernetes(Command):
 
         if deployment_strategy == "Recreate":
             namespaces = KubernetesNamespace.namespaces_from_api_call(
-                    self.subprocess.check_output(self._cli + " get ns", shell=True)
+                    self.subprocess.check_output(self.kubectl + " get ns", shell=True)
             )
             for namespace in namespaces:
                 if namespace.name == environment:

@@ -288,6 +288,7 @@ template:
           help: the name/address of the maintainer
         - name: --folder
           help: where to genereate the hive.yml and the subproject folder
+
 local_cluster:
   help: manage a local kubernetes cluster run on containers
   commands:
@@ -295,11 +296,20 @@ local_cluster:
       help: start a local kubernetes cluster
       type: code
       parameters:
+        - name: docker_host
+          help: The docker host, for docker-toolbox use something like 192.168.99.100, for linux use localhost
         - name: --version
           help: kubernetes version in the form v1.1.8
+        - name: --port
+          help: the port you want for the apiserver. default is 8080
     start_dns:
       help: start the dns service for your cluster
       type: code
+      parameters:
+        - name: docker_host
+          help: The docker host, for docker-toolbox use something like 192.168.99.100, for linux use localhost
+        - name: --port
+          help: the port of the apiserver. default is 8080
     set:
       help: start the dns service for your cluster
       type: code

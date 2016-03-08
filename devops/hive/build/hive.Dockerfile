@@ -1,4 +1,4 @@
-FROM       <% image.os %>
+FROM       <% os %>
 MAINTAINER <% maintainer %>
 
 COPY install.sh /tmp/install.sh

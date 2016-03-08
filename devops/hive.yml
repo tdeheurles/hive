@@ -2,11 +2,13 @@ spec:
   configuration:
     maintainer: thibault deheurles <tdeheurles@gmail.com>
 
-    image:
-      os:   ubuntu:14.04.2
-      hive: tdeheurles/hive
+    os:   ubuntu:14.04.2
 
-    version:
-      hive:
-        minor: "5"
-        major: "0"
+    hive:
+      image: tdeheurles/hive
+      minor: "5"
+      major: "0"
+
+    kubernetes:
+      image: tdeheurles/kubernetes
+      base: gcr.io/google_containers/hyperkube

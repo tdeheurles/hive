@@ -12,3 +12,10 @@ spec:
     kubernetes:
       image: tdeheurles/kubernetes
       base: gcr.io/google_containers/hyperkube
+
+    local_cluster_proxy:
+      base: nginx:1.9.7
+      image: tdeheurles/local_cluster_proxy
+      major: 0
+      minor: 0
+      name: local_cluster_proxy

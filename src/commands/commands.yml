@@ -302,8 +302,8 @@ local_cluster:
           help: kubernetes version in the form v1.1.8
         - name: --port
           help: the port you want for the apiserver. default is 8080
-    start_dns:
-      help: start the dns service for your cluster
+    start_addons:
+      help: start the addons for your cluster (DNS, Dashboard, ...)
       type: code
       parameters:
         - name: docker_host

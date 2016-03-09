@@ -12,7 +12,8 @@ control_version() {
 usage() {
     echo "Pre Hive container options:"
     echo "==========================="
-    echo "usage: ${0} [-t] [-v] [-c] [-w] [-h] [Hive Container Options and Parameters]"
+    echo "usage: ${0} [option] [Hive Container Options and Parameters]"
+    echo "  -i, --init               init docker-toolbox for local_cluster"
     echo "  -u, --update             update to the REQUESTED_VERSION defined in the ${0} script"
     echo "  -t, --no-tty             remove tty for the hive instance"
     echo "  -v, --verbose            verbose"
@@ -111,6 +112,14 @@ print_help () {
     fi
 }
 
+init_vm_for_local_cluster () {
+    if [[ ${INIT_CLUSTER} == YES ]];then
+        docker-machine ssh default "sudo mount --bind /var/lib/kubelet /var/lib/kubelet"
+        docker-machine ssh default "sudo mount --make-shared /var/lib/kubelet"
+        echo "the default machine is now ready for a local-kubernetes-cluster"
+    fi
+}
+
 start_hive() {
     docker run -i ${TTY}                              \
         --net=host                                    \
@@ -128,6 +137,7 @@ main() {
     # CONTROL PARAMETERS
     while [ "$#" -gt 0 ]; do
     case "$1" in
+        -i|--init)              INIT_CLUSTER=YES;             shift 1;;
         -u|--update)            UPDATE=YES;                   shift 1;;
         -t|--no-tty)            NOTTY=YES;                    shift 1;;
         -v|--verbose)           VERBOSE=YES;                  shift 1;;
@@ -144,6 +154,7 @@ main() {
     control_version
     clean 
     remove_working_directory
+    init_vm_for_local_cluster
 
     if [[ -f /.dockerenv ]];then
         copy_data_to_hive_working_directory

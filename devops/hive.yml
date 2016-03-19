@@ -11,7 +11,7 @@ spec:
 
     kubernetes:
       image: tdeheurles/kubernetes
-      base: gcr.io/google_containers/hyperkube
+      base: gcr.io/google_containers/hyperkube-amd64
 
     local_cluster_proxy:
       base: nginx:1.9.7

@@ -82,7 +82,7 @@ class kubernetes(Command):
                 " rc " + args["service"]
         )
 
-    def test_tool(self, args):
+    def testtools(self, args):
         self._verbose("test_tools")
         namespace = args["namespace"]
 

@@ -9,28 +9,7 @@ for i in "${@}"; do
   esac
 done
 
-# Change to this solution when 1.2 is released
-#FILES="master.json etcd.json kube-proxy.json"
-#for FILE in ${FILES}
-#do
-#    FILE_PATH=/etc/kubernetes/manifests/${FILE}
-#    sed -i \
-#        "s/8080/${PORT}/g" \
-#        ${FILE_PATH}
-#done
-
-#/hyperkube kubelet                         \
-#    --containerized                        \
-#    --hostname-override="127.0.0.1"        \
-#    --address="0.0.0.0"                    \
-#    --api-servers=http://localhost:${PORT} \
-#    --config=/etc/kubernetes/manifests     \
-#    --cluster-dns=10.0.0.10                \
-#    --cluster-domain=cluster.local         \
-#    --allow-privileged=true                \
-#    --v=2
-
-FILES="master.json"
+FILES="master.json kube-proxy.json"
 for FILE in ${FILES}
 do
     FILE_PATH=/etc/kubernetes/manifests/${FILE}
@@ -39,18 +18,12 @@ do
         ${FILE_PATH}
 done
 
-/nsenter \
-    --target=1 \
-    --mount \
-    --wd=. \
-    -- \
-    ./hyperkube \
-        kubelet \
-            --hostname-override=127.0.0.1 \
-            --address=0.0.0.0 \
-            --api-servers=http://localhost:${PORT} \
-            --config=etc/kubernetes/manifests \
-            --cluster-dns=10.0.0.10 \
-            --cluster-domain=cluster.local \
-            --allow-privileged=true \
-            --v=2
+/hyperkube kubelet                         \
+    --address="0.0.0.0"                    \
+    --allow-privileged=true                \
+    --enable-server                        \
+    --api-servers=http://localhost:${PORT} \
+    --config=/etc/kubernetes/manifests     \
+    --cluster-dns=10.0.0.10                \
+    --cluster-domain=cluster.local         \
+    --v=2

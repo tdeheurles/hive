@@ -12,7 +12,7 @@ class local_cluster(Command):
     def create(self, args):
         docker_host = args["docker_host"]
 
-        kube_version = "v1.2.0-alpha.8"
+        kube_version = "v1.2.0"
         if "version" in args:
             kube_version = args["version"]
 
@@ -20,11 +20,7 @@ class local_cluster(Command):
         if "port" in args:
             apiserver_port = args["port"]
 
-        kube_architecture = "amd64"
-
-        self._start_etcd()
-        self._start_master(kube_version, apiserver_port, kube_architecture)
-        #self._start_proxy(kube_version, apiserver_port)
+        self._start_master(kube_version, apiserver_port)
         self._set_context(apiserver_port, docker_host)
 
     def _start_etcd(self):
@@ -40,7 +36,7 @@ class local_cluster(Command):
         """
         self.subprocess.call(etcd_command, shell=True)
 
-    def _start_master(self, kube_version, apiserver_port, kube_architecture):
+    def _start_master(self, kube_version, apiserver_port):
         master_template = """
             docker run \
                 -d \
@@ -51,22 +47,14 @@ class local_cluster(Command):
                 -v /sys:/sys:ro \
                 -v /var/run:/var/run:rw \
                 -v /var/lib/docker/:/var/lib/docker:rw \
-                -v /var/lib/kubelet/:/var/lib/kubelet:rshared \
-                gcr.io/google_containers/hyperkube-__ARCH__:__KUBE_VERSION__ \
-                    /hyperkube kubelet \
-                        --address=0.0.0.0 \
-                        --allow-privileged=true \
-                        --enable-server \
-                        --api-servers=http://localhost:8080 \
-                        --config=/etc/kubernetes/manifests \
-                        --cluster-dns=10.0.0.10 \
-                        --cluster-domain=cluster.local \
-                        --v=2
+                -v /var/lib/kubelet/:/var/lib/kubelet:shared \
+                tdeheurles/kubernetes:__KUBE_VERSION__ \
+                  /start.sh \
+                    --port __APISERVER_PORT__
         """
         master_command = master_template\
             .replace("__KUBE_VERSION__", kube_version)\
-            .replace("__APISERVER_PORT__", apiserver_port)\
-            .replace("__ARCH__", kube_architecture)\
+            .replace("__APISERVER_PORT__", apiserver_port)
 
         self.subprocess.call(master_command, shell=True)
 
@@ -114,7 +102,7 @@ class local_cluster(Command):
         if "port" in args:
             apiserver_port = args["port"]
 
-        #self._start_dns(docker_host, apiserver_port)
+        self._start_dns(docker_host, apiserver_port)
         self._start_dashboard()
 
     def _start_dns(self, docker_host, apiserver_port):

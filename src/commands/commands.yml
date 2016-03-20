@@ -310,6 +310,15 @@ local_cluster:
           help: The docker host, for docker-toolbox use something like 192.168.99.100, for linux use localhost
         - name: --port
           help: the port of the apiserver. default is 8080
-    set:
-      help: start the dns service for your cluster
+    proxy:
+      help: start a proxy for your local kubernetes cluster
       type: code
+      parameters:
+        - name: hostport
+          help: the port you want to access on the host
+        - name: containerport
+          help: the port of the container you want to proxy
+        - name: serviceip
+          help: the ip of the service to proxy. Run "./hive kubernetes status namespace> to see the details of your services.
+        - name: method
+          help: the method you want to proxy http or ws

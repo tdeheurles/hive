@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REQUESTED_VERSION="0.5"
+REQUESTED_VERSION="latest"
 
 CURL=$(which curl)
 if [[ ${CURL} == "" ]];then 

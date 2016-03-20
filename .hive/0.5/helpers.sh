@@ -114,6 +114,7 @@ print_help () {
 
 init_vm_for_local_cluster () {
     if [[ ${INIT_CLUSTER} == YES ]];then
+        docker-machine ssh default "sudo mkdir -p /var/lib/kubelet"
         docker-machine ssh default "sudo mount --bind /var/lib/kubelet /var/lib/kubelet"
         docker-machine ssh default "sudo mount --make-shared /var/lib/kubelet"
         echo "the default machine is now ready for a local-kubernetes-cluster"

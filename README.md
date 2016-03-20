@@ -6,6 +6,10 @@ The project try to simplify the container process with docker, kubernetes and gc
 
 For now the project is a `prototype`, the api is really not fixed as I want it to match to a real utilisation.
 
+### Example
+
+Go [here](example/helloworld/readme.md) to see a full example
+
 ### The problems I try to solve
 
 To run container in automation, you need some glue to make everything work. Some use CAPS (chef, Ansible, Puppet, Salt), some use bash script ...
@@ -40,7 +44,7 @@ Understand that `hive` will access your local docker, so it can start container,
 ### What is done
 
 hive services:
-```
+
 - `docker`: run command with the docker client (for windows/mac, the commands are passed directly to the docker client of the VM, fixing some issues)
     - `cli` run docker commands
 
@@ -70,10 +74,10 @@ hive services:
     - `docker`      init a subproject. This will let you build and run your project locally
     - `kubernetes`  generate the manifests needed by kubernetes.
 
-```
-
-### Example
-Go [here](example/helloworld/readme.md) to see a full example
+- `local_cluster`: start a local kubernetes cluster
+    - `create` generate a local cluster using kubernetes on docker
+    - `start_addons` start kubernetes addons like DNS and Dashboard
+    - `proxy` proxy a kubernetes service to the machine
 
 ##### Note
 - the process is really similar to what we already do

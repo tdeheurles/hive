@@ -23,19 +23,6 @@ class local_cluster(Command):
         self._start_master(kube_version, apiserver_port)
         self._set_context(apiserver_port, docker_host)
 
-    def _start_etcd(self):
-        etcd_command = """
-            docker run \
-                -d \
-                --net=host \
-                gcr.io/google_containers/etcd:2.2.1 \
-                    /usr/local/bin/etcd \
-                    --addr=127.0.0.1:4001  \
-                    --bind-addr=0.0.0.0:4001 \
-                    --data-dir=/var/etcd/data
-        """
-        self.subprocess.call(etcd_command, shell=True)
-
     def _start_master(self, kube_version, apiserver_port):
         master_template = """
             docker run \
@@ -57,25 +44,6 @@ class local_cluster(Command):
             .replace("__APISERVER_PORT__", apiserver_port)
 
         self.subprocess.call(master_command, shell=True)
-
-    def _start_proxy(self, kube_version, apiserver_port):
-        proxy_template = """
-            docker run \
-            -d \
-            --net=host \
-            --pid=host \
-            --privileged=true \
-                tdeheurles/kubernetes:__KUBE_VERSION__ \
-                    /hyperkube \
-                        proxy \
-                            --master=http://127.0.0.1:__APISERVER_PORT__ \
-                            --v=2
-        """
-        proxy_command = proxy_template \
-            .replace("__KUBE_VERSION__", kube_version) \
-            .replace("__APISERVER_PORT__", apiserver_port)
-
-        self.subprocess.call(proxy_command, shell=True)
 
     def _set_context(self, apiserver_port, docker_host):
         print "Setting local kubernetes as kubectl context"
@@ -146,61 +114,26 @@ class local_cluster(Command):
                     "resource.yml"
             )
 
-    def _start_kube2sky(self, apiserver_port):
-        kube2sky_template = """
+    # PROXY
+    def proxy(self, args):
+        proxy_command_template = """
             docker run \
                 -d \
                 --net=host \
-                gcr.io/google_containers/kube2sky:1.12 \
-                    --kube_master_url=http://127.0.0.1:__APISERVER_PORT__ \
-                    --domain=cluster.local \
+                tdeheurles/proxy:0.0 \
+                    /start.sh \
+                    --host-port=__HOST_PORT__ \
+                    --container-port=__CONTAINER_PORT__ \
+                    --service=__SERVICE__ \
+                    --namespace=__NAMESPACE__ \
+                    --method=__METHOD__
         """
-        kube2sky_command = kube2sky_template \
-            .replace("__APISERVER_PORT__", apiserver_port)
 
-        self.subprocess.call(kube2sky_command, shell=True)
+        proxy_command = proxy_command_template\
+            .replace("__HOST_PORT__", args["hostport"])\
+            .replace("__CONTAINER_PORT__", args["containerport"])\
+            .replace("__SERVICE__", args["serviceip"])\
+            .replace("__NAMESPACE__", "useless-for-now")\
+            .replace("__METHOD__", args["method"])
 
-    def _start_skydns(self):
-        skydns_command = """
-            docker run \
-                -d \
-                --net=host \
-                gcr.io/google_containers/skydns:2015-10-13-8c72f8c \
-                    --machines=http://localhost:4001 \
-                    --addr=0.0.0.0:53 \
-                    --domain=cluster.local \
-                    --ns-rotate=false
-        """
-        self.subprocess.call(skydns_command, shell=True)
-
-    # SAVE
-    def _start_post12(self):
-        pass
-        # ==================
-        # VERSION AFTER 1.2
-        #   DO NOT DELETE
-        # ==================
-        # kubernetes_command_template = """
-        # docker run -d \
-        #     --volume=/:/rootfs:ro \
-        #     --volume=/sys:/sys:ro \
-        #     --volume=/var/lib/docker/:/var/lib/docker:rw \
-        #     --volume=/var/lib/kubelet/:/var/lib/kubelet:rw \
-        #     --volume=/var/run:/var/run:rw \
-        #     --net=host \
-        #     --pid=host \
-        #     --privileged=true \
-        #     tdeheurles/kubernetes:__K8S_VERSION__ \
-        #         __PORT__
-        # """
-        # kubernetes_command = kubernetes_command_template \
-        #     .replace("__K8S_VERSION__", kube_version) \
-        #     .replace("__PORT__", "--port " + apiserver_port)
-        # self.subprocess.call(kubernetes_command, shell=True)
-
-
-
-
-
-
-
+        self.subprocess.call(proxy_command, shell=True)

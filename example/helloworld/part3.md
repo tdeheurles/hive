@@ -89,7 +89,7 @@ We have just added a `-p 80:80` line to the `docker run`
 
 ### build and run it
 And now, build run test and kill ...
-```
+```console
 # BUILD
 $ ./hive do build myProjectName mySubProjectName id 1
 

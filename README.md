@@ -10,6 +10,12 @@ For now the project is a `prototype`, the api is really not fixed as I want it t
 
 Go [here](example/helloworld/readme.md) to see a full example
 
+### Main points
+- remove all dependencies other than docker
+- regroup all common commands to
+  - manage docker project (build/run/push)
+  - manage kubernetes cluster (create a cluster/deploy on it)
+
 ### The problems I try to solve
 
 To run container in automation, you need some glue to make everything work. Some use CAPS (chef, Ansible, Puppet, Salt), some use bash script ...

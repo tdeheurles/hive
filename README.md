@@ -15,6 +15,7 @@ Go [here](example/helloworld/readme.md) to see a full example
 - regroup all common commands to
   - manage docker project (build/run/push)
   - manage kubernetes cluster (create a cluster/deploy on it)
+- focus on developpers `have to` commands
 
 ### The problems I try to solve
 

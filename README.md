@@ -6,9 +6,9 @@ The project try to simplify the container process with docker, kubernetes and gc
 
 For now the project is a `prototype`, the api is really not fixed as I want it to match to a real utilisation.
 
-### Example
+### Documentation
 
-Go [here](example/helloworld/readme.md) to see a full example
+Go [here](https://tdeheurles.gitbooks.io/hive/content/index.html) to see the documentation with a full [helloworld example](https://tdeheurles.gitbooks.io/hive/content/docs/helloworld/readme.html).
 
 ### Main points
 - remove all dependencies other than docker

@@ -7,3 +7,4 @@
   * [Create a kubernetes cluster on gcloud](docs/helloworld/part4.md)
   * [Deploying our application](docs/helloworld/part5.md)
   * [Updating our application](docs/helloworld/part6.md)
+* [Local kubernetes cluster](docs/local_kubernetes_cluster.md)

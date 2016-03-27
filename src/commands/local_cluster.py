@@ -65,15 +65,14 @@ class local_cluster(Command):
 
     # ADDONS
     def start_addons(self, args):
-        docker_host = args["docker_host"]
         apiserver_port = "8080"
         if "port" in args:
             apiserver_port = args["port"]
 
-        self._start_dns(docker_host, apiserver_port)
+        self._start_dns(apiserver_port)
         self._start_dashboard()
 
-    def _start_dns(self, docker_host, apiserver_port):
+    def _start_dns(self, apiserver_port):
         import yaml
         import json
 
@@ -82,7 +81,7 @@ class local_cluster(Command):
 
         with open("./commands/templates/local_cluster/dns-rc.yml") as stream:
             dns_rc_template_content = stream.read() \
-                .replace("__KUBE_SERVER_URL__", "http://" + docker_host + ":" + apiserver_port)
+                .replace("__APISERVER_PORT__", apiserver_port)
 
         for content in [dns_svc_template_content, dns_rc_template_content]:
             template = yaml.load(content)

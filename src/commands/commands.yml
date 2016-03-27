@@ -100,15 +100,6 @@ kubernetes:
       parameters:
         - name: "name"
           help: "the name of the environment to delete"
-#    create:
-#      help: deploy a kubernetes resource
-#      type: code
-#      parameters:
-#        - name: "path"
-#          help: "the path to the resource manifest"
-#        - name: "parameters"
-#          help: "a list of key value to update the manifest"
-#          nargs: "..."
     cli:
       help: run kubectl commands
       type: code
@@ -132,51 +123,6 @@ kubernetes:
       parameters:
         - name: "namespace"
           help: "the environment where to start the testtool"
-#    rolling_update:
-#      help: rolling update of a replication controller
-#      type: code
-#      parameters:
-#        - name: "deployment_file"
-#          help: "the path to your deployment file"
-#        - name: "environment"
-#          help: "the environment you want to use"
-#        - name: "service"
-#          help: "the name of your replication controller"
-#        - name: "build"
-#          help: "the new build you want"
-#script:
-#  help: run script with hive parameters
-#  commands:
-#    hive_run:
-#      help: run your code inside a container, using hive parameter system
-#      type: code
-#      parameters:
-#        - name: "--config"
-#          help: "the path to a config file"
-#        - name: "--timed"
-#          help: "write duration of process at the end"
-#          action: "store_const"
-#        - name: "path"
-#          help: "the path to the script"
-#        - name: "script"
-#          help: "the script name"
-#        - name: "parameters"
-#          help: "list of arguments for the script"
-#          nargs: "..."
-#    run:
-#      help: run your code inside the hive container
-#      type: code
-#      parameters:
-#        - name: "--timed"
-#          help: "write duration of process at the end"
-#          action: "store_const"
-#        - name: "path"
-#          help: "the path to the script"
-#        - name: "script"
-#          help: "the script to run"
-#        - name: "parameters"
-#          help: "the argument for the script"
-#          nargs: "..."
 
 certificate:
   help: certificates manager
@@ -306,8 +252,6 @@ local_cluster:
       help: start the addons for your cluster (DNS, Dashboard, ...)
       type: code
       parameters:
-        - name: docker_host
-          help: The docker host, for docker-toolbox use something like 192.168.99.100, for linux use localhost
         - name: --port
           help: the port of the apiserver. default is 8080
     proxy:

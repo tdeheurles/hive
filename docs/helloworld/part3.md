@@ -1,4 +1,4 @@
-# SETUP OUR IMAGE AS A SERVICE
+# Setup our image as a service
 
 So, let's generate a really simple helloworld project.  
 We will build a nginx container that will host a index.html page.

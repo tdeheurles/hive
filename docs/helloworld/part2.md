@@ -1,6 +1,5 @@
-# RUN IT
+# Run it
 
-##### TRY IT
 Now, let's run our `docker image` locally as a `docker container` (image are like class and container like instance):
 
 ```bash

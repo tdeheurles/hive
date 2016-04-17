@@ -6,8 +6,9 @@ spec:
 
     hive:
       image: tdeheurles/hive
-      minor: "5"
+      minor: "6"
       major: "0"
+      docker: "1.9.1"
 
     kubernetes:
       image: tdeheurles/kubernetes

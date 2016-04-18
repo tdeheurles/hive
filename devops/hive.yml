@@ -6,7 +6,7 @@ spec:
 
     hive:
       image: tdeheurles/hive
-      minor: "6"
+      minor: "7"
       major: "0"
       docker: "1.9.1"
 

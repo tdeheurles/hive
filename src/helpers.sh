@@ -20,6 +20,7 @@ usage() {
     echo "  -t, --no-tty             remove tty for the hive instance"
     echo "  -v, --verbose            verbose"
     echo "  -c, --clean              stop running containers, remove all containers and image without tag"
+    echo "  -w, --rm-hive-directory  lean hive_working_directory volume. That is needed to clean project for hive started from inside a container."
     echo "  -d, --docker             give the docker version you want to use in hive"
     echo "  -h, --help               show this help message and exit"
     echo "  --version                print the script version and exit"
@@ -53,6 +54,15 @@ clean() {
     if [[ ${CLEAN} == YES ]];then
         clean_containers
         exit 0
+    fi
+}
+
+remove_working_directory() {
+    if [[ ${REMOVE_WORKING_DIRECTORY} == YES ]];then
+        docker run -i ${TTY}                          \
+        -v hive_docker:/root/.docker                  \
+        -v //var/run/docker.sock:/var/run/docker.sock \
+        ${hive_container} docker remove_working_directory
     fi
 }
 
@@ -143,7 +153,8 @@ main() {
 
     verbose "Start:"
     control_version
-    clean 
+    clean
+    remove_working_directory
     init_vm_for_local_cluster
 
     if [[ -f /.dockerenv ]];then

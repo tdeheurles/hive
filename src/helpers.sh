@@ -59,6 +59,7 @@ clean() {
 
 remove_working_directory() {
     if [[ ${REMOVE_WORKING_DIRECTORY} == YES ]];then
+        echo "clearing working directory"
         docker run -i ${TTY}                          \
         -v hive_docker:/root/.docker                  \
         -v //var/run/docker.sock:/var/run/docker.sock \

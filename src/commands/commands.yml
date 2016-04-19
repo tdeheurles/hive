@@ -8,6 +8,9 @@ docker:
         - name: "parameters"
           help: "the command to run"
           nargs: "..."
+    remove_working_directory:
+      help: stop and remove all container linked to the hive working_directory volume
+      type: code
 
 gcloud:
   help: interact with the google cloud plateform

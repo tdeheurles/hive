@@ -22,13 +22,3 @@ class DockerContainer:
 
             self.mounts.append(
                 DockerVolume.docker_volume_from_mounts(name, source, destination, driver, mode, rw, propagation))
-
-    def _convert(self, data):
-        if isinstance(data, basestring):
-            return str(data)
-        elif isinstance(data, collections.Mapping):
-            return dict(map(self._convert, data.iteritems()))
-        elif isinstance(data, collections.Iterable):
-            return type(data)(map(self._convert, data))
-        else:
-            return data

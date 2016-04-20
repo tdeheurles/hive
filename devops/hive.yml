@@ -2,7 +2,7 @@ spec:
   configuration:
     maintainer: thibault deheurles <tdeheurles@gmail.com>
 
-    os:   ubuntu:14.04.2
+    os: ubuntu:14.04.2
 
     hive:
       image: tdeheurles/hive
@@ -20,3 +20,13 @@ spec:
       major: 0
       minor: 0
       name: local_cluster_proxy
+
+    testtools:
+      major: 1
+      minor: 1
+      image: weareadaptive/testtools
+
+    gcloud:
+      major: 1
+      minor: 0
+      image: weareadaptive/gcloud

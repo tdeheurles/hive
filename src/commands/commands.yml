@@ -87,6 +87,9 @@ kubernetes:
           help: "the name of the environment where you want to deploy your application"
         - name: "build"
           help: "the build identifiant that you want to deploy"
+        - name: "--notty"
+          help: "remove tty when docker run is used in script"
+          action: "store_const"
     create_environment:
       help: generate a new environment
       type: code
@@ -97,12 +100,18 @@ kubernetes:
           help: "A label to point to the project"
         - name: "--subproject"
           help: "A label to point to a sub-categorie"
+        - name: "--notty"
+          help: "remove tty when docker run is used in script"
+          action: "store_const"
     delete:
       help: delete an environment
       type: code
       parameters:
         - name: "name"
           help: "the name of the environment to delete"
+        - name: "--notty"
+          help: "remove tty when docker run is used in script"
+          action: "store_const"
     cli:
       help: run kubectl commands
       type: code
@@ -110,6 +119,9 @@ kubernetes:
         - name: "parameters"
           help: "the command to run with kubectl (the kubernetes CLI)"
           nargs: "..."
+        - name: "--notty"
+          help: "remove tty when docker run is used in script"
+          action: "store_const"
     scale:
       help: scale a service in a given namespace
       type: code
@@ -120,12 +132,18 @@ kubernetes:
           help: "the service to scale"
         - name: "count"
           help: "the target count for the service"
+        - name: "--notty"
+          help: "remove tty when docker run is used in script"
+          action: "store_const"
     testtools:
       help: start a test/debug service and connect to in it
       type: code
       parameters:
         - name: "namespace"
           help: "the environment where to start the testtool"
+        - name: "--notty"
+          help: "remove tty when docker run is used in script"
+          action: "store_const"
 
 certificate:
   help: certificates manager

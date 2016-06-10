@@ -31,8 +31,6 @@ class docker(Command):
         containers_to_remove = [container for container in containers if
                                 len([mount for mount in container.mounts if mount.name == "hive_working_directory"])]
 
-        print "Containers to remove: " + len(containers_to_remove)
-
         for container in containers_to_remove:
             if container.running:
                 self.subprocess.check_output(["docker", "kill", container.id])

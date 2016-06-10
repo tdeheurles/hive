@@ -59,6 +59,7 @@ clean() {
 
 remove_working_directory() {
     if [[ ${REMOVE_WORKING_DIRECTORY} == YES ]];then
+        echo "clearing working directory"
         docker run -i ${TTY}                          \
         -v hive_docker:/root/.docker                  \
         -v //var/run/docker.sock:/var/run/docker.sock \
@@ -120,6 +121,7 @@ init_vm_for_local_cluster () {
 }
 
 start_hive() {
+
     docker run -i ${TTY}                              \
         --net=host                                    \
         -v hive_docker:/root/.docker                  \
@@ -127,7 +129,7 @@ start_hive() {
         -v hive_share:/hive_share                     \
         -v //var/run/docker.sock:/var/run/docker.sock \
         ${container_or_host}                          \
-        ${hive_container} ${ARGS}
+        ${hive_container} ${ARGS} ${TTYFLAG}
 }
 
 main() {
@@ -170,7 +172,13 @@ main() {
     fi
 
     TTY=""
-    if [[ ${NOTTY} != YES ]];then TTY="-t"; fi
+    TTYFLAG=""
+
+    if [[ ${NOTTY} != YES ]]; then
+        TTY="-t"
+    else
+        TTYFLAG="--notty"
+    fi
 
     print_help
     start_hive

@@ -19,25 +19,25 @@ class kubernetes(Command):
     def __init__(self, subprocess, hive_home, options):
         Command.__init__(self, "kubernetes", subprocess, hive_home, options)
 
+        self.gcloud = gcloud(subprocess, hive_home, options)
         self.resources_path = '/hive_share/kubernetes/manifests'
-        self.kubectl = gcloud(subprocess, hive_home, options).get_container() + " kubectl "
 
     # commands
     def status(self, args):
         self._verbose("status")
         namespace = "--namespace=" + args["namespace"]
         print "\n\033[92m==================== SERVICES ====================\n\033[0m"
-        self.subprocess.check_call(self.kubectl + " get services " + namespace, shell=True)
+        self.subprocess.check_call(self._get_kubectl(args) + " get services " + namespace, shell=True)
         print "\n\033[92m======================= RC =======================\n\033[0m"
-        self.subprocess.check_call(self.kubectl + " get rc " + namespace, shell=True)
+        self.subprocess.check_call(self._get_kubectl(args) + " get rc " + namespace, shell=True)
         print "\n\033[92m====================== PODS ======================\n\033[0m"
-        self.subprocess.check_call(self.kubectl + " get pods " + namespace, shell=True)
+        self.subprocess.check_call(self._get_kubectl(args) + " get pods " + namespace, shell=True)
         print "\n\033[92m====================== NODES =====================\n\033[0m"
-        self.subprocess.check_call(self.kubectl + " get nodes " + namespace, shell=True)
+        self.subprocess.check_call(self._get_kubectl(args) + " get nodes " + namespace, shell=True)
 
     def namespaces(self, args):
         self._verbose("namespaces")
-        self.subprocess.check_call(self.kubectl + " get ns", shell=True)
+        self.subprocess.check_call(self._get_kubectl(args) + " get ns", shell=True)
 
     def cli(self, args):
         self._verbose("cli")
@@ -45,18 +45,18 @@ class kubernetes(Command):
         if isinstance(command, list):
             command = string.join(command)
 
-        self._execute_command(command)
+        self._execute_command(command, args)
 
     def create_environment(self, args):
         self._verbose("create_environment")
         manifest_factory = ManifestFactory()
         manifest = manifest_factory.new_namespace(args)
         output = json.dumps(manifest)
-        self.create_resource(output, self.resources_path, '/namespace.json')
+        self.create_resource(output, self.resources_path, '/namespace.json', args)
 
     def delete(self, args):
         self._verbose("delete")
-        self._execute_command("delete ns " + args["name"])
+        self._execute_command("delete ns " + args["name"], args)
 
     def create(self, args):
         self._verbose("create")
@@ -71,7 +71,7 @@ class kubernetes(Command):
         for i in range(0, len(parameters), 2):
             pattern = pattern.replace(parameters[i], parameters[i + 1])
 
-        self.create_resource(pattern, self.resources_path, '/resource')
+        self.create_resource(pattern, self.resources_path, '/resource', args)
 
     def scale(self, args):
         # NEED TO UPDATE SERVICE TO SOMETHING EASIER TO SPELL: ie: PRICING should become PRICING-0-0-860
@@ -79,7 +79,7 @@ class kubernetes(Command):
         self._execute_command(
                 "scale --namespace=" + args["namespace"] + \
                 " --replicas=" + args["count"] + \
-                " rc " + args["service"]
+                " rc " + args["service"], args
         )
 
     def testtools(self, args):
@@ -89,21 +89,21 @@ class kubernetes(Command):
         testtool_pods = []
         attempt = 0
         while attempt < 10:
-            testtool_pods = self._get_pods_by_name("testtool", namespace)
+            testtool_pods = self._get_pods_by_name("testtool", namespace, args)
             if len(testtool_pods) != 0:
                 break
-            self._start_testtool(namespace)
+            self._start_testtool(namespace, args)
             time.sleep(1)
             attempt += 1
 
         if len(testtool_pods) != 0:
             pod = testtool_pods[0]
 
-            result = self._wait_for_pod_to_run(pod, namespace)
+            result = self._wait_for_pod_to_run(pod, namespace, args)
 
             if result == 0:
                 self._execute_command(
-                        "exec -ti --namespace=" + namespace + " " + pod.name + " bash"
+                        "exec -ti --namespace=" + namespace + " " + pod.name + " bash", args
                 )
             else:
                 sys.exit("failed to connect to a testtool pod")
@@ -137,104 +137,45 @@ class kubernetes(Command):
                         self._deploy_create_resource(
                                 kind, sub_project,
                                 file_transpiler,
-                                hive_config, build, environment
+                                hive_config, build, environment, args
                         )
 
-                        # if deployment_strategy == "RollingUpdate":
-                        #     # we rolling update replication controller
-                        #     if "replicationController" in deployment:
-                        #         for rc in [rcs["name"] for rcs in deployment["replicationController"]]:
-                        #             self.rolling_update({
-                        #                 "service": rc,
-                        #                 "build": build,
-                        #                 "environment": environment,
-                        #                 "deployment_file": deployment_file
-                        #             })
-
-    # def rolling_update(self, args):
-    #     self._verbose("rolling_update")
-    #
-    #     service = args["service"]
-    #     build = args["build"]
-    #     environment = args["environment"]
-    #     deployment_file = args["deployment_file"]
-    #     deployment, templates_folder, configuration_file = self._read_files(deployment_file)
-    #     path_to_resource = self.hive_home + "/" + templates_folder + "/" + service
-    #
-    #     file_transpiler = FileGenerator(self.subprocess)
-    #     added_files = file_transpiler.generate_hive_files(
-    #             configuration_file,
-    #             ["build", build],
-    #             path_to_resource
-    #     )
-    #
-    #     with open(path_to_resource + "/" + added_files[0], "r") as stream:
-    #         template = yaml.load(stream.read())
-    #
-    #     template["metadata"]["namespace"] = environment
-    #
-    #     if not os.path.exists(self.resources_path):
-    #         os.makedirs(self.resources_path)
-    #
-    #     resource_to_update = self.resources_path + "/" + service
-    #     with open(resource_to_update, 'w') as f:
-    #         f.write(json.dumps(template))
-    #
-    #     error = None
-    #     try:
-    #         self.subprocess.call(
-    #                 self._cli + \
-    #                 " rolling-update " + service + \
-    #                 " --namespace=" + environment + \
-    #                 " -f ", resource_to_update,
-    #                 shell=True
-    #         )
-    #
-    #     except OSError as osError:
-    #         error = osError
-    #
-    #     file_transpiler.cleanup(added_files, path_to_resource)
-    #
-    #     if error is not None:
-    #         sys.exit(error)
-
-
     # helpers
-    def _get_pods_by_name(self, name, namespace):
-        call = self._get_pods(namespace)
+    def _get_pods_by_name(self, name, namespace, args):
+        call = self._get_pods(namespace, args)
         kubernetes_pods = KubernetesPod.pods_from_api_call(call)
         return [pod for pod in kubernetes_pods
                 if string.find(pod.name, name) is not -1]
 
-    def _get_pods(self, namespace):
+    def _get_pods(self, namespace, args):
         return self.subprocess.check_output(
-                self.kubectl + "get pods --namespace=" + namespace,
+                self._get_kubectl(args) + "get pods --namespace=" + namespace,
                 shell=True
         )
 
-    def _start_testtool(self, namespace):
+    def _start_testtool(self, namespace, args):
         with open("commands/templates/testtool-pod.yml", 'r') as stream:
             testtool_pod = yaml.load(stream)
 
         testtool_pod["metadata"]["namespace"] = namespace
 
         self.create_resource(
-                json.dumps(testtool_pod), '/hive_share/kubernetes/pods', namespace + '-testtool.json'
+                json.dumps(testtool_pod), '/hive_share/kubernetes/pods', namespace + '-testtool.json', args
         )
 
-    def create_resource(self, output, path, file_name):
+    def create_resource(self, output, path, file_name, args):
         if not os.path.exists(path):
             os.makedirs(path)
 
         with open(path + "/" + file_name, 'w') as f:
             f.write(output)
 
-        self._execute_command("create -f " + path + "/" + file_name)
+        self._execute_command("create -f " + path + "/" + file_name, args)
 
-    def _wait_for_pod_to_run(self, origin_pod, namespace):
+    def _wait_for_pod_to_run(self, origin_pod, namespace, args):
         attempt = 0
         while attempt < 10:
-            pods = self._get_pods_by_name(origin_pod.name, namespace)
+            pods = self._get_pods_by_name(origin_pod.name, namespace, args)
             status = [pod.status for pod in pods]
             if len(status) < 1:
                 sys.exit("the pod " + origin_pod.name + "does not exist")
@@ -248,17 +189,17 @@ class kubernetes(Command):
             attempt += 1
         return 1
 
-    def _execute_command(self, command):
+    def _execute_command(self, command, args):
         try:
             self.subprocess.check_call(
-                    "cd " + self.hive_home + " && " + self.kubectl + " " + command,
+                    "cd " + self.hive_home + " && " + self._get_kubectl(args) + " " + command,
                     shell=True
             )
         except self.subprocess.CalledProcessError as error:
             sys.exit(error)
 
     def _deploy_create_resource(self, kind, sub_project, hive_file_transpiler,
-                                hive_config, build, environment):
+                                hive_config, build, environment, args):
 
         hive_file_transpiler.generate_hive_files(
                 hive_config,
@@ -276,7 +217,7 @@ class kubernetes(Command):
         self.create_resource(
                 json.dumps(template),
                 self.resources_path,
-                kind_short_name + ".yml"
+                kind_short_name + ".yml", args
         )
         hive_file_transpiler.cleanup([kind_short_name + ".yml"], sub_project.path + "/kubernetes")
 
@@ -287,7 +228,7 @@ class kubernetes(Command):
 
         if deployment_strategy == "Recreate":
             namespaces = KubernetesNamespace.namespaces_from_api_call(
-                    self.subprocess.check_output(self.kubectl + " get ns", shell=True)
+                    self.subprocess.check_output(self._get_kubectl(args) + " get ns", shell=True)
             )
             for namespace in namespaces:
                 if namespace.name == environment:
@@ -298,7 +239,8 @@ class kubernetes(Command):
 
             create_environment_args = {
                 "name": environment,
-                "project": hive_file.configuration["project"]
+                "project": hive_file.configuration["project"],
+                "notty": args["notty"]
             }
 
             # if "subproject" in args:
@@ -315,3 +257,6 @@ class kubernetes(Command):
             return "svc"
         if kind == "secret":
             return "sct"
+
+    def _get_kubectl(self, args):
+        return self.gcloud.get_container(args) + " kubectl "

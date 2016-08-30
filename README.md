@@ -6,6 +6,11 @@ The project try to simplify the container process with docker, kubernetes and gc
 
 For now the project is a `prototype`, the api is really not fixed as I want it to match to a real utilisation.
 
+### Notes
+
+- I didn't have time to work on the project for a moment now but I still really think it's the way to go. The main part of the prototype RnD is to define how and where to build the containers. Kubernetes is the place to `run` containers and not a place to build them. I think a simple `docker swarm cluster` as a poll of builders would be a good target for the builds.
+- Last docker versions can have broken some parts of the tool.
+
 ### Documentation
 
 Go [here](https://tdeheurles.gitbooks.io/hive/content/index.html) to see the documentation with a full [helloworld example](https://tdeheurles.gitbooks.io/hive/content/docs/helloworld/readme.html).

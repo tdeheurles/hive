@@ -264,13 +264,13 @@ local_cluster:
       type: code
       parameters:
         - name: docker_host
-          help: The docker host, for docker-toolbox use something like 192.168.99.100, for linux use localhost
+          help: "The docker host, for docker-toolbox use something like 192.168.99.100, for linux use localhost"
         - name: --version
           help: kubernetes version in the form v1.1.8
         - name: --port
           help: the port you want for the apiserver. default is 8080
     start_addons:
-      help: start the addons for your cluster (DNS, Dashboard, ...)
+      help: "start the addons for your cluster (DNS, Dashboard, ...)"
       type: code
       parameters:
         - name: --port
@@ -287,3 +287,12 @@ local_cluster:
           help: the ip of the service to proxy. Run "./hive kubernetes status namespace> to see the details of your services.
         - name: method
           help: the method you want to proxy http or ws
+deployer:
+  help: manage vm environment
+  commands:
+    describe:
+      help: give details on an environment and its current status
+      type: code
+      parameters:
+        - name: id
+          help: "A string id to distinct your unit, it must only contains alphanumeric characters"
